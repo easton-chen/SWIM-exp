@@ -1,0 +1,11 @@
+** Event #0   t=0   Elapsed: 1.1e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 8   present: 7   in FES: 6
+** Event #1087232   t=3970.287856087272   Elapsed: 2.04657s (0m 02s)  63% completed  (63% total)
+     Speed:     ev/sec=531248   simsec/sec=1939.98   ev/simsec=273.842
+     Messages:  created: 135889   present: 35   in FES: 7
+** Event #2012075   t=6301   Elapsed: 3.44781s (0m 03s)  100% completed  (100% total)
+     Speed:     ev/sec=660020   simsec/sec=1663.32   ev/simsec=396.808
+     Messages:  created: 251462   present: 10   in FES: 7
+
+<!> Simulation time limit reached -- at t=6301s, event #2012075

@@ -111,8 +111,8 @@ elif(order == 4):
 mpc.set_objective(mterm=mterm, lterm=lterm)
 
 mpc.set_rterm(
-    u_1_dimmer=1e-4,
-    u_2_server=1e-4
+    u_1_dimmer=1e-2,
+    u_2_server=1e-2
 )
 
 # define bounds

@@ -19,7 +19,7 @@ if [ "$3" != "" ]; then
     INIFILE="$3"
 fi
 
-python MPCController.py >MPC.log &
+python NewMPCController.py >MPC.log &
 PID=$!
 sleep 2s
 opp_runall -j1 $MAINSIMDIR/$MAINSIMEXEC $INIFILE -u Cmdenv -c $1 -n ..:$MAINSIMDIR:../../../queueinglib:../../src -lqueueinglib $RUNS

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#df = pd.read_csv('./SWIM_SA/csv/Reactive-5.csv')
-df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
+df = pd.read_csv('./SWIM_SA/csv/Reactive-0.csv')
+#df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 brownout = df.loc[df['name'] == 'brownoutFactor:vector']
@@ -33,7 +33,7 @@ timeoutRateSeries = timeoutRate['vecvalue'].array[0].split(' ')
 tlen = len(brownoutSeries)
 
 accUtility = 0
-accUtilitySeries = []
+utilitySeries = []
 
 for i in range(tlen):
     avgThroughputSeries[i] = float(avgThroughputSeries[i]) 
@@ -51,9 +51,9 @@ for i in range(tlen):
         revenue = (1 - timeoutRateSeries[i]) * avgThroughputSeries[i] * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i])
         cost = 5 * (3 - serverNumSeries[i])
         accUtility = accUtility + revenue + cost   
-        accUtilitySeries.append(accUtility)
+        utilitySeries.append(revenue + cost)
 
-print("total utility = " + str(accUtilitySeries[-1]))        
+print("total utility = " + str(accUtility))        
 
 fig,axarr = plt.subplots(6,1)  #开一个新窗口，并添加4个子图，返回子图数组
 fig.set_size_inches(6.4, 9.6)
@@ -88,10 +88,10 @@ axarr[4].set_ylabel('avgResponseTime')
 axarr[4].set_ylim(0,1) 
 axarr[4].plot(range(tlen),avgResponseTimeSeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
-axarr[5].set_title('Utility')
+axarr[5].set_title('Total Utility = ' + str(accUtility))
 axarr[5].set_ylabel('Utility')                          
-axarr[5].set_ylim(0,max(accUtilitySeries)) 
-axarr[5].plot(range(tlen),accUtilitySeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
+axarr[5].set_ylim(0,max(utilitySeries)) 
+axarr[5].plot(range(tlen),utilitySeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
 plt.show()
 

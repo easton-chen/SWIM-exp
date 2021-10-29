@@ -51,6 +51,8 @@ Tactic* TestAdaptationManager::evaluate() {
     bool isServerBooting = pModel->getServers() > pModel->getActiveServers();
     double responseTime = pModel->getObservations().avgResponseTime;
     double timeoutRate = pModel->getObservations().timeoutRate;
+    double avgInterval = pModel->getEnvironment().getArrivalMean();
+    double avgThroughput = 1.0 / avgInterval;
 
     int socket_desc;
 	struct sockaddr_in server;
@@ -102,6 +104,9 @@ Tactic* TestAdaptationManager::evaluate() {
     // server
     token = strtok(NULL, s); 
     int serverNum = atol(token); 
+    if(avgThroughput < 15){
+        serverNum = 1;
+    }
     printf( "server num = %d\n", serverNum);
 
 

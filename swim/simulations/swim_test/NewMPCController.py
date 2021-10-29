@@ -99,7 +99,7 @@ mterm = 0*x_1
 
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
-    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.15*u_1_dimmer+0.0001*u_2_server
+    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.15*u_1_dimmer+0.01*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -125,8 +125,8 @@ mpc.bounds['upper','_u', 'u_2_server'] = 3
 # define environment prediction model
 tvp_prediction = mpc.get_tvp_template()
 
-#traceName = './traces/wc_day53-r0-105m-l70.delta'
-traceName = './traces/clarknet-http-105m-l70.delta'
+traceName = './traces/wc_day53-r0-105m-l70.delta'
+#traceName = './traces/clarknet-http-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -144,7 +144,7 @@ for req in reqs:
         curNum = 1
 
 train = reqList       
-env_model = ARIMA(train, order=(7,1,0))
+env_model = ARIMA(train, order=(2,1,0))
 global env_model_fit
 env_model_fit = env_model.fit()
 

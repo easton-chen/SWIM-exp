@@ -14,12 +14,24 @@ if [ "$2" != "" ] && [ "$2" != "all" ]; then
     RUNS="-r $2"
 fi
 
-INIFILE="swim_test.ini"
+CONTROLLER="NewMPCController.py"
 if [ "$3" != "" ]; then
-    INIFILE="$3"
+	if [ $3 == 0 ]; then
+    	CONTROLLER="NewMPCController.py"
+	elif [ $3 == 1 ]; then
+		CONTROLLER="CobRaMPCController.py"
+	elif [ $3 == 2 ]; then
+		CONTROLLER="MPCController.py"
+	fi
 fi
 
-python NewMPCController.py >MPC.log &
+INIFILE="swim_test.ini"
+if [ "$4" != "" ]; then
+    INIFILE="$4"
+fi
+
+
+python $CONTROLLER >MPC.log &
 PID=$!
 sleep 2s
 opp_runall -j1 $MAINSIMDIR/$MAINSIMEXEC $INIFILE -u Cmdenv -c $1 -n ..:$MAINSIMDIR:../../../queueinglib:../../src -lqueueinglib $RUNS

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('./SWIM_SA/csv/Reactive-0.csv')
-#df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
+#df = pd.read_csv('./SWIM_SA/csv/Reactive-0.csv')
+df = pd.read_csv('./SWIM_TEST/csv/Test-1.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 brownout = df.loc[df['name'] == 'brownoutFactor:vector']
@@ -48,7 +48,7 @@ for i in range(tlen):
         #    + basicMedianResponseTimeSeries[i] + '\t' + optMedianResponseTimeSeries[i]+ '\t' 
         #    + timeoutRateSeries[i])
 
-        revenue = (1 - timeoutRateSeries[i]) * avgThroughputSeries[i] * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i])
+        revenue = (1 - timeoutRateSeries[i]) * avgThroughputSeries[i] * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i]) - 0.5 * timeoutRateSeries[i] * avgThroughputSeries[i]
         cost = 5 * (3 - serverNumSeries[i])
         accUtility = accUtility + revenue + cost   
         utilitySeries.append(revenue + cost)

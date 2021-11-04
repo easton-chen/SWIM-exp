@@ -99,7 +99,7 @@ mterm = 0*x_1
 
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
-    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.15*u_1_dimmer+0.01*u_2_server
+    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.1*u_1_dimmer+0.01*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server

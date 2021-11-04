@@ -101,7 +101,7 @@ mpc.set_param(**setup_mpc)
 mterm = 0*x_1
 
 if(order == 2):
-    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-1*u_1_dimmer+0.4*u_2_server
+    lterm = (C[0][0]*x_1+C[0][1]*x_2)-0.12*u_1_dimmer+0.04*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -113,8 +113,8 @@ elif(order == 4):
 mpc.set_objective(mterm=mterm, lterm=lterm)
 
 mpc.set_rterm(
-    u_1_dimmer=1e-2,
-    u_2_server=1e-2
+    u_1_dimmer=1e-6,
+    u_2_server=1e-6
 )
 
 # define bounds

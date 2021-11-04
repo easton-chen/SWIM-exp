@@ -5,10 +5,11 @@ from matplotlib import pyplot
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 import math
+import numpy as np
 
 
 #traceName = './traces/clarknet-http-105m-l70.delta'
-traceName = './traces/clarknet-http-105m-l70.delta'
+traceName = './traces/wc_day53-r0-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -47,7 +48,7 @@ history_data = X[0:size]
 global history
 history = [x for x in history_data]
 predictions = list()
-model = ARIMA(train, order=(7,1,0))
+model = ARIMA(train, order=(2,1,0))
 global model_fit
 model_fit = model.fit()
 #output = model_fit.forecast(steps=len(test))
@@ -59,37 +60,14 @@ for t in range(len(test)):
 	predictions.append(yhat)
 	history.append(obs)
 	print('predicted=%f, expected=%f' % (yhat, obs))
-error = mean_squared_error(test, predictions)
-RMSE = math.sqrt(error)
-print('Test RMSE: %.3f' % RMSE)
+
+
+MAPE = np.mean(np.abs((np.array(predictions) - np.array(test)) / np.array(test))) * 100
+print('Test MAPE: %.3f' % MAPE)
+
 # plot
 pyplot.plot(test, label='true value')
 pyplot.plot(predictions, color='orange', label='prediction')
 pyplot.legend(loc='lower left')
-pyplot.title('ARIMA')
-pyplot.show()
-
-# save result
-#data = pandas.DataFrame(data = predictions)
-#data.to_csv('ARIMA_res.csv')
-
-def fun():
-    pvalue = predict(model_fit,history)
-    return pvalue
-
-for t in range(len(test)):
-	yhat = fun()
-	obs = test[t]
-	predictions.append(yhat)
-	history.append(obs)
-	print('predicted=%f, expected=%f' % (yhat, obs))    
-
-error = mean_squared_error(test, predictions)
-RMSE = math.sqrt(error)
-print('Test RMSE: %.3f' % RMSE)
-# plot
-pyplot.plot(test, label='true value')
-pyplot.plot(predictions, color='orange', label='prediction')
-pyplot.legend(loc='lower left')
-pyplot.title('ARIMA')
+pyplot.title('WorldCup\'98')
 pyplot.show()

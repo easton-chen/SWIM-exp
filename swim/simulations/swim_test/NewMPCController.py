@@ -13,6 +13,7 @@ from statsmodels.tsa.arima.model import ARIMA
 
 import socket
 
+case = 1 # wc-0,cl-1
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -99,7 +100,10 @@ mterm = 0*x_1
 
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
-    lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.1*u_1_dimmer+0.01*u_2_server
+    if(case == 0):
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.2*u_1_dimmer+0.002*u_2_server
+    if(case == 1):
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.14*u_1_dimmer+0.001*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -125,8 +129,10 @@ mpc.bounds['upper','_u', 'u_2_server'] = 3
 # define environment prediction model
 tvp_prediction = mpc.get_tvp_template()
 
-traceName = './traces/wc_day53-r0-105m-l70.delta'
-#traceName = './traces/clarknet-http-105m-l70.delta'
+if(case == 0):
+    traceName = './traces/wc_day53-r0-105m-l70.delta'
+if(case == 1):
+    traceName = './traces/clarknet-http-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -143,8 +149,11 @@ for req in reqs:
         reqList.append(curNum)
         curNum = 1
 
-train = reqList       
-env_model = ARIMA(train, order=(2,1,0))
+train = reqList   
+if(case == 0):
+    env_model = ARIMA(train, order=(2,1,0))   
+if(case == 1): 
+    env_model = ARIMA(train, order=(7,1,0))
 global env_model_fit
 env_model_fit = env_model.fit()
 
@@ -211,8 +220,9 @@ x_hat = x0
 P = np.array([0, 0, 0, 0]).reshape(2,2)
 #P_ = np.array([0, 0, 0, 0]).reshape(2,2)
 K = np.array([0, 0]).reshape(2,1)
-u0 = np.array([1,1]).reshape(-1,1)
+u0 = np.array([0,1]).reshape(-1,1)
 
+t = 0
 
 # setup socket
 HOST = '127.0.0.1'          # Symbolic name meaning all available interfaces
@@ -236,5 +246,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 x_hat = x_p + np.matmul(K, y - np.matmul(C, x_p))
                 P = np.matmul(np.eye(2) - np.matmul(K, C),P)
                 u0 = mpc.make_step(x_hat)
+                if(case == 0):
+                    if(reqList[t] / 60 < 20):
+                        u0[1][0] = 1
+                #if(case == 1):
+                #    if(reqList[t] / 60 < 15):
+                #        u0[1][0] = 1
                 sendData = (str(u0[0][0]) + ' ' + str(int(u0[1][0]))).encode()
                 conn.sendall(sendData)
+                t = t + 1

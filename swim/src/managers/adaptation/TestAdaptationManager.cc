@@ -104,9 +104,9 @@ Tactic* TestAdaptationManager::evaluate() {
     // server
     token = strtok(NULL, s); 
     int serverNum = atol(token); 
-    if(avgThroughput < 15){
+    /*if(avgThroughput < 20){
         serverNum = 1;
-    }
+    }*/
     printf( "server num = %d\n", serverNum);
 
 

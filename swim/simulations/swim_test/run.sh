@@ -36,5 +36,5 @@ PID=$!
 sleep 2s
 opp_runall -j1 $MAINSIMDIR/$MAINSIMEXEC $INIFILE -u Cmdenv -c $1 -n ..:$MAINSIMDIR:../../../queueinglib:../../src -lqueueinglib $RUNS
 
-sleep 3s
+sleep 2s
 kill -9 $PID

@@ -55,7 +55,7 @@ for i in range(tlen):
 
 print("total utility = " + str(accUtility))        
 
-fig,axarr = plt.subplots(6,1)  #开一个新窗口，并添加4个子图，返回子图数组
+fig,axarr = plt.subplots(6,1)  
 fig.set_size_inches(6.4, 9.6)
 plt.subplots_adjust(hspace=1)
 

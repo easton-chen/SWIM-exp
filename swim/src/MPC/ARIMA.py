@@ -68,6 +68,6 @@ print('Test MAPE: %.3f' % MAPE)
 # plot
 pyplot.plot(test, label='true value')
 pyplot.plot(predictions, color='orange', label='prediction')
-pyplot.legend(loc='lower left')
+pyplot.legend(loc='upper left')
 pyplot.title('WorldCup\'98')
 pyplot.show()

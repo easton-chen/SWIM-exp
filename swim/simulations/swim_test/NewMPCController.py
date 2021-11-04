@@ -13,7 +13,7 @@ from statsmodels.tsa.arima.model import ARIMA
 
 import socket
 
-case = 1 # wc-0,cl-1
+case = 0 # wc-0,cl-1
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)

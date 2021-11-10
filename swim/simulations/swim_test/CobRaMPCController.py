@@ -130,8 +130,8 @@ mpc.bounds['upper','_u', 'u_2_server'] = 3
 # define environment prediction model
 tvp_prediction = mpc.get_tvp_template()
 
-traceName = './traces/wc_day53-r0-105m-l70.delta'
-#traceName = './traces/clarknet-http-105m-l70.delta'
+#traceName = './traces/wc_day53-r0-105m-l70.delta'
+traceName = './traces/clarknet-http-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0

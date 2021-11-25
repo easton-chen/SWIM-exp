@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-dfRe = pd.read_csv('./Reactive-1.csv')
-dfCobra = pd.read_csv('./Cobra-1.csv')
-dfMy = pd.read_csv('./My-1.csv')
+dfRe = pd.read_csv('./all/Reactive-1.csv')
+dfCobra = pd.read_csv('./all/Cobra-1.csv')
+dfMy = pd.read_csv('./all/My-1.csv')
 
 def getData(df):
     df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])

@@ -9,8 +9,8 @@ import numpy as np
 
 pyplot.rcParams['font.sans-serif']=['SimHei']
 
-#traceName = './traces/clarknet-http-105m-l70.delta'
-traceName = './traces/wc_day53-r0-105m-l70.delta'
+traceName = './traces/clarknet-http-105m-l70.delta'
+#traceName = './traces/wc_day53-r0-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -49,7 +49,7 @@ history_data = X[0:size]
 global history
 history = [x for x in history_data]
 predictions = list()
-model = ARIMA(train, order=(2,1,0))
+model = ARIMA(train, order=(7,1,0))
 global model_fit
 model_fit = model.fit()
 #output = model_fit.forecast(steps=len(test))
@@ -71,5 +71,6 @@ print('Test MAPE: %.3f' % MAPE)
 pyplot.plot(range(len(predictions)), test, label='真实值')
 pyplot.plot(range(len(predictions)), predictions, color='orange', label='预测值')
 pyplot.legend(loc='upper left')
-pyplot.title('WorldCup\'98')
+#pyplot.title('WorldCup\'98 (MAPE = 14.401%)')
+pyplot.title('ClarkNet (MAPE = 13.868%)')
 pyplot.show()

@@ -50,6 +50,7 @@ class DLL_PUBLIC SimpleMonitor : public omnetpp::cSimpleModule, omnetpp::cListen
     omnetpp::simsignal_t basicMedianResponseTime;
     omnetpp::simsignal_t optMedianResponseTime;
     omnetpp::simsignal_t timeoutRate;
+    omnetpp::simsignal_t resUtil;
 
     Model* pModel;
     IProbe* pProbe;

@@ -42,6 +42,7 @@ void SimpleMonitor::initialize(int stage) {
         basicMedianResponseTime = registerSignal("basicMedianResponseTime");
         optMedianResponseTime = registerSignal("optMedianResponseTime");
         timeoutRate = registerSignal("timeoutRate");
+        resUtil = registerSignal("resUtil");
 
         serverRemovedSignal = registerSignal(ExecutionManagerModBase::SIG_SERVER_REMOVED);
         serverAddedSignal = registerSignal(ExecutionManagerModBase::SIG_SERVER_ADDED);
@@ -128,6 +129,14 @@ void SimpleMonitor::periodicHandler() {
     emit(basicMedianResponseTime, observations.basicMedianResponseTime);
     emit(optMedianResponseTime, observations.optMedianResponseTime);
     emit(timeoutRate, observations.timeoutRate);
+    
+
+    // get new res util
+    if(pModel->period < pModel->resUtils.size()){
+        pModel->resUtil = pModel->resUtils[pModel->period++];
+    } 
+    emit(resUtil,pModel->resUtil);
+
 }
 
 void SimpleMonitor::oversamplingHandler() {

@@ -45,6 +45,10 @@ public:
     };
     typedef std::multiset<ModelChangeEvent, ModelChangeEventComp> ModelChangeEvents;
 
+    std::vector<double> resUtils;
+    double resUtil;
+    int period;
+
 protected:
     static const char* HORIZON_PAR;
     virtual int numInitStages() const {return 2;}
@@ -90,6 +94,9 @@ protected:
     void removeExpectedChange();
 
     bool isServerBooting() const;
+
+    // preload source file
+    virtual void preload();
 
 public:
     Model();

@@ -19,6 +19,7 @@
 #include <sstream>
 #include <math.h>
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 #include <util/Utils.h>
 
@@ -181,6 +182,8 @@ void Model::initialize(int stage) {
         numberOfBrownoutLevels = getSimulation()->getSystemModule()->par("numberOfBrownoutLevels");
         dimmerMargin = getSimulation()->getSystemModule()->par("dimmerMargin");
         lowerDimmerMargin = par("lowerDimmerMargin");
+
+        preload();
     } else {
         // start servers
         ExecutionManagerModBase* pExecMgr = check_and_cast<ExecutionManagerModBase*> (getParentModule()->getSubmodule("executionManager"));
@@ -350,4 +353,23 @@ int Model::dimmerFactorToLevel(double dimmerFactor) const {
 
 double Model::getDimmerMargin() const {
     return dimmerMargin;
+}
+
+
+// source file
+void Model::preload() {
+    //const char* filePath = par("sourceFile").stringValue();
+    ifstream fin("traces/sourceFile");
+    if (!fin) {
+        error("Model %s could not read input file ", this->getFullName());
+    } else {
+        double resUtil;
+        while (fin >> resUtil) {
+            resUtils.push_back(resUtil);
+        }
+        fin.close();
+        EV << "read " << resUtils.size() << " elements from sourceFile"  << endl;
+    }
+    period = 0;
+    resUtil = 1;
 }

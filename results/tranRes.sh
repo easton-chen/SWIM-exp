@@ -16,4 +16,4 @@ mv *.csv csv
 
 cd -
 
-python plotResult.py
+#python plotResult.py

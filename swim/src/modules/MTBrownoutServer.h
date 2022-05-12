@@ -19,6 +19,7 @@
 #include "MTServer.h"
 #include <map>
 #include <string>
+#include "model/Model.h"
 
 /**
  * Module class for a multi-threaded server with brownout
@@ -75,6 +76,7 @@ class MTBrownoutServer : public MTServer
      * If false, it makes clearServerCache() a noop
      */
     bool cacheClearsWhenReboot;
+
 
   protected:
     virtual simtime_t generateJobServiceTime(queueing::Job* pJob);

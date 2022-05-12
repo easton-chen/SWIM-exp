@@ -57,6 +57,8 @@ simple SimpleMonitor
         @statistic[optMedianResponseTime](record=vector);
         @signal[timeoutRate](type="double");
         @statistic[timeoutRate](record=vector);
+        @signal[resUtil](type="double");
+        @statistic[resUtil](record=vector);
         
     gates:
         input probe;

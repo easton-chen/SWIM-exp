@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator
 
-dfRe = pd.read_csv('./all/Reactive-1.csv')
-dfCobra = pd.read_csv('./all/CobRA-1.csv')
-dfMy = pd.read_csv('./all/New-1.csv')
+dfRe = pd.read_csv('./all/Reactive-0.csv')
+dfCobra = pd.read_csv('./all/CobRA-0.csv')
+dfMy = pd.read_csv('./all/Ours-0.csv')
 
 def getData(df):
     df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
@@ -83,7 +83,7 @@ for i in range(6):
     axarr[i].set_xlabel('t') 
     axarr[i].set_xlim(0,tlen) 
 
-axarr[0].set_title('avgThroughput (ClarkNet)')
+axarr[0].set_title('avgThroughput (WorldCup\'98)')
 axarr[0].set_ylabel('avgThroughput')                          
 axarr[0].set_ylim(0,max(avgThroughputSeriesRe)) 
 axarr[0].plot(range(tlen),avgThroughputSeriesRe,linestyle='--',alpha=0.5,color='r')    #线图：linestyle线性，alpha透明度，color颜色，label图例文本
@@ -127,9 +127,9 @@ axarr[5].plot(range(tlen),utilitySeriesRe,linestyle='--',alpha=0.5,color='r')
 axarr[5].plot(range(tlen),utilitySeriesCobra,linestyle='--',alpha=0.5,color='g')
 axarr[5].plot(range(tlen),utilitySeriesMy,linestyle='--',alpha=0.5,color='b')  #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
-axarr[1].legend(labels=['Reactive','CobRA','New'],loc='best',bbox_to_anchor=(1.05,1.0))
+axarr[1].legend(labels=['Reactive','CobRA','Ours'],loc='best',bbox_to_anchor=(1.05,1.0))
 plt.show()
 
 showStat('Reactive', dDimmerSeriesRe, dServerNumSeriesRe, timeoutRateSeriesRe, accUtilityRe)
 showStat('CobRA', dDimmerSeriesCobra, dServerNumSeriesCobra, timeoutRateSeriesCobra, accUtilityCobra)
-showStat('New', dDimmerSeriesMy, dServerNumSeriesMy, timeoutRateSeriesMy, accUtilityMy)
+showStat('Ours', dDimmerSeriesMy, dServerNumSeriesMy, timeoutRateSeriesMy, accUtilityMy)

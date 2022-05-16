@@ -6,6 +6,7 @@ import pgmpy.inference
 import numpy as np
 import pandas as pd
 from pgmpy.models import DynamicBayesianNetwork as DBN
+from pgmpy.inference import DBNInference
 
 import matplotlib.pyplot as plt
 
@@ -15,7 +16,7 @@ from sklearn.cluster import KMeans
 import random
 
 # The main entry point for this module
-def main():
+def example1():
     # Create a dynamic bayesian network
     model = pgmpy.models.DynamicBayesianNetwork()
     # Add nodes
@@ -98,7 +99,7 @@ def main():
     print()
 
 
-def main1():
+def example2():
     model = DBN(
         [
             (("W", 0), ("R", 0)),
@@ -117,13 +118,16 @@ def main1():
     print(model.get_cpds(node=("R",1)))
 
 def scaleAndDiscrete(data):
+    minValue = data.min()
+    maxValue = data.max()
     for i in range(len(data)):
-        data[i] = (data[i] - data.min()) / (data.max() - data.min())
-        data[i] = int(data[i] / 0.34)
+        data[i] = (data[i] - minValue) / (maxValue - minValue) * 100
+        #print(data[i])
+        data[i] = int(data[i] / 34)
     return data
 
-def main2():
-    data = pd.read_csv('C:/Users/LENOVO/Desktop/swim/dbn/PerfResult.csv',usecols=['Value','Timestamp','MetricId','Entity'])
+def main():
+    data = pd.read_csv('/home/czy/Desktop/SWIM-exp/swim/src/MPC/DBN/PerfResult.csv',usecols=['Value','Timestamp','MetricId','Entity'])
     #print(data.head())
     data = data[data['Entity']=='php5_server']
     #data = data[data['Entity']=='php7_server']
@@ -137,15 +141,55 @@ def main2():
     #scale(CpuHzData)
     #print(CpuHzData)
     
-    x = range(len(CpuPercentData))
-    plt.plot(x,scaleAndDiscrete(NetData),label='net')
-    #plt.plot(x,scaleAndDiscrete(CpuPercentData),label='cpu percent')
+    #dataMat = np.array([CpuPercentData,CpuHzData,MemData,DiskData,NetData])
+    #corr = np.corrcoef(dataMat)
+    #print(corr) 
+    
+    scaleAndDiscrete(NetData)
+    scaleAndDiscrete(CpuPercentData)
+    #x = range(len(CpuPercentData))
+    #plt.plot(x,NetData,label='net')
+    #plt.plot(x,CpuPercentData,label='cpu percent')
     #plt.plot(x,scaleAndDiscrete(CpuHzData),label='cpu hz')
     #plt.plot(x,scaleAndDiscrete(MemData),label='mem')
-    plt.plot(x,scaleAndDiscrete(DiskData),label='disk')
-    plt.legend()
-    plt.show()
+    #plt.plot(x,scaleAndDiscrete(DiskData),label='disk')
+    #plt.legend()
+    #plt.show()
+
+    model = modelBuild(NetData,CpuPercentData)
+
+    trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_day53-r0-105m-l70.delta','r')
+    curTime = 0
+    curNum = 0
+    reqList = []
+    reqs = trace.readlines()
+    for req in reqs:
+        time = float(req)
+        if(curTime + time < 60):
+            curTime += time
+            curNum += 1
+        else:
+            curTime = time
+            reqList.append(int(curNum / 60))
+            curNum = 1
+
+    reqList = scaleAndDiscrete(np.array(reqList))
+    #for i in range(len(reqList)):
+    #    print(str(i) + ':' + str(reqList[i]))
+
+    modelInf = DBNInference(model)
+    resUtil = []
+    resUtil.append(0)
+    reqPredict = []
+    W1 = modelInf.forward_inference([('W',1)],{('W',0):0})[('W', 1)].values
+    print(W1)
+    #for i in range(len(reqList) - 1):
+    #    W1 = modelInf.query([('W',1)],{('W',0):reqList[i]})
+    #    reqPredict.append(W1)
+        #resUtil.append(modelInf.query())
     
+    
+def modelBuild(data1,data2):
     model = DBN(
         [
             (("W", 0), ("R", 0)),
@@ -155,13 +199,13 @@ def main2():
     )
     
     # generate dbn training data
-    tdLength = len(NetData) - 1
+    tdLength = len(data1) - 1
     traindata = np.random.randint(low=0, high=2, size=(tdLength, 4))
     for i in range(tdLength):
-        traindata[i][0] = NetData[i]
-        traindata[i][1] = DiskData[i]
-        traindata[i][2] = NetData[i+1]
-        traindata[i][3] = DiskData[i+1]
+        traindata[i][0] = data1[i]
+        traindata[i][1] = data2[i]
+        traindata[i][2] = data1[i+1]
+        traindata[i][3] = data2[i+1]
 
 
     colnames = []
@@ -170,7 +214,12 @@ def main2():
     df = pd.DataFrame(traindata, columns=colnames)
     #print(df)
     model.fit(df)
+    print(model.get_cpds(node=("W",1)))
     print(model.get_cpds(node=("R",1)))
+
+    return model
+
+
 
 
 def generateResData():
@@ -182,5 +231,7 @@ def generateResData():
     dataFile.close()
     
 if __name__ == "__main__": 
-    generateResData()
+    main()
+
+    
     

@@ -181,14 +181,27 @@ def main():
     resUtil = []
     resUtil.append(0)
     reqPredict = []
-    W1 = modelInf.forward_inference([('W',1)],{('W',0):0})[('W', 1)].values
-    print(W1)
-    #for i in range(len(reqList) - 1):
-    #    W1 = modelInf.query([('W',1)],{('W',0):reqList[i]})
-    #    reqPredict.append(W1)
-        #resUtil.append(modelInf.query())
+    #W1 = modelInf.forward_inference([('W',1)],{('W',0):1})[('W', 1)].values
+    getValue = lambda cpd: round(cpd[0]*0 + cpd[1]*1 + cpd[2]*2)
+    #print(getValue(W1))
     
+    for i in range(len(reqList) - 1):
+        #W1 = modelInf.forward_inference([('W',1)],{('W',0):reqList[i]})[('W', 1)].values
+        R1 = modelInf.forward_inference([('R',1)],{('W',1):reqList[i+1],('R',0):resUtil[i]})[('R',1)].values
+        #reqPredict.append(getValue(W1))
+        ran = np.random.random()
+        if(ran < R1[0]):
+            resUtil.append(0)
+        elif(ran < (R1[0]+R1[1])):
+            resUtil.append(1)
+        else:
+            resUtil.append(2)
+        #resUtil.append(getValue(R1))
     
+    for i in range(len(resUtil)):
+        print(str(reqList[i]) + ' ' + str(resUtil[i]))
+        #print(resUtil[i])
+
 def modelBuild(data1,data2):
     model = DBN(
         [
@@ -232,6 +245,7 @@ def generateResData():
     
 if __name__ == "__main__": 
     main()
-
+    
+    
     
     

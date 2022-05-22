@@ -77,6 +77,7 @@ class MTBrownoutServer : public MTServer
      */
     bool cacheClearsWhenReboot;
 
+    Model* pModel;
 
   protected:
     virtual simtime_t generateJobServiceTime(queueing::Job* pJob);

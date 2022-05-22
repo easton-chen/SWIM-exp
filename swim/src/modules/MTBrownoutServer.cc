@@ -57,6 +57,8 @@ void MTBrownoutServer::initialize() {
     cachePrecision = par("cachePrecision");
     cacheClearsWhenReboot = par("cacheClearsWhenReboot");
     
+    pModel = check_and_cast<Model*>(
+                getParentModule()->getParentModule()->getSubmodule("model"));
 }
 
 simtime_t MTBrownoutServer::generateJobServiceTime(queueing::Job* pJob)  {
@@ -88,9 +90,9 @@ simtime_t MTBrownoutServer::generateJobServiceTime(queueing::Job* pJob)  {
     }
 #endif
     
-    Model* pModel = check_and_cast<Model*>(
-                getParentModule()->getParentModule()->getSubmodule("model"));
-    st = st * pModel->resUtil;
+    //Model* pModel = check_and_cast<Model*>(
+    //            getParentModule()->getParentModule()->getSubmodule("model"));
+    st = st * (pModel->resUtil + 2) * 0.5;
 
     emit(registerSignal("serviceTime"), (pJob->getKind() == 1) ? -st.dbl() : st.dbl());
 

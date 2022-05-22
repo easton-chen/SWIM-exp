@@ -1,6 +1,7 @@
 from cProfile import label
 #from importlib.metadata import MetadataPathFinder
 from ipaddress import collapse_addresses
+
 import pgmpy.models
 import pgmpy.inference
 import numpy as np
@@ -117,13 +118,17 @@ def example2():
     model.fit(df)
     print(model.get_cpds(node=("R",1)))
 
-def scaleAndDiscrete(data):
-    minValue = data.min()
-    maxValue = data.max()
-    for i in range(len(data)):
-        data[i] = (data[i] - minValue) / (maxValue - minValue) * 100
-        #print(data[i])
-        data[i] = int(data[i] / 34)
+def scaleAndDiscrete(data,flag=0):
+    if(flag == 0):
+        minValue = data.min()
+        maxValue = data.max()
+        for i in range(len(data)):
+            data[i] = (data[i] - minValue) / (maxValue - minValue) * 100
+            #print(data[i])
+            data[i] = int(data[i] / 34)
+    else:
+        for i in range(len(data)):
+            data[i] = int(data[i] / flag)
     return data
 
 def main():
@@ -159,6 +164,8 @@ def main():
     model = modelBuild(NetData,CpuPercentData)
 
     trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_day53-r0-105m-l70.delta','r')
+    #trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/clarknet-http-105m-l70.delta','r')
+    curTime = 0
     curTime = 0
     curNum = 0
     reqList = []
@@ -173,7 +180,7 @@ def main():
             reqList.append(int(curNum / 60))
             curNum = 1
 
-    reqList = scaleAndDiscrete(np.array(reqList))
+    reqList = scaleAndDiscrete(np.array(reqList),25)
     #for i in range(len(reqList)):
     #    print(str(i) + ':' + str(reqList[i]))
 
@@ -201,6 +208,8 @@ def main():
     for i in range(len(resUtil)):
         print(str(reqList[i]) + ' ' + str(resUtil[i]))
         #print(resUtil[i])
+    
+    model1 = modelBuild(reqList, resUtil)
 
 def modelBuild(data1,data2):
     model = DBN(
@@ -237,15 +246,15 @@ def modelBuild(data1,data2):
 
 def generateResData():
     len = 210    
-    dataFile = open('C:/Users/LENOVO/Desktop/swim/dbn/sourceFile','w')
+    dataFile = open('/home/czy/Desktop/SWIM-exp/swim/simulations/swim/traces/sourceFile','w')
     for i in range(len):
-        res = random.randint(1,3) * 0.5
+        res = random.randint(0,2) 
         dataFile.write(str(res) + '\n')
     dataFile.close()
     
 if __name__ == "__main__": 
-    main()
-    
+    #main()
+    generateResData()
     
     
     

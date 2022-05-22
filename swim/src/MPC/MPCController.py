@@ -19,7 +19,7 @@ model = do_mpc.model.Model(model_type)
 
 # load model parameters
 A = np.zeros((order, order))
-B = np.zeros((order, 3))
+B = np.zeros((order, 4))
 C = np.zeros((1,order))
 path = './'
 fileA = open(path + 'A.txt','r')
@@ -36,7 +36,7 @@ for line in fileA.readlines():
 i = 0   
 for line in fileB.readlines():
     blist = line.split(',')
-    for j in range(3):
+    for j in range(4):
         B[i][j] = blist[j]
     i = i + 1
 
@@ -57,6 +57,7 @@ u_1_dimmer = model.set_variable(var_type='_u', var_name='u_1_dimmer')
 u_2_server = model.set_variable(var_type='_u', var_name='u_2_server')
 
 request_num = model.set_variable('_tvp', 'request_num') # time varying parameter
+request_num = model.set_variable('_tvp', 'res')
 
 # define equations
 if(order == 2):

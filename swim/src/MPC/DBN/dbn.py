@@ -205,6 +205,11 @@ def main():
             resUtil.append(2)
         #resUtil.append(getValue(R1))
     
+    resTraceName = '/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_res'
+    resTrace = open(resTraceName,'w')
+    for i in range(len(resUtil)):
+        resTrace.write(str(resUtil[i]) + '\n')
+
     for i in range(len(resUtil)):
         print(str(reqList[i]) + ' ' + str(resUtil[i]))
         #print(resUtil[i])
@@ -253,8 +258,8 @@ def generateResData():
     dataFile.close()
     
 if __name__ == "__main__": 
-    #main()
-    generateResData()
+    main()
+    #generateResData()
     
     
     

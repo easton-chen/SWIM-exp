@@ -1,6 +1,4 @@
-from glob import glob
 import numpy as np
-import pandas as pd
 
 # Add do_mpc to path. This is not necessary if it was installed via pip.
 import sys
@@ -15,19 +13,13 @@ from statsmodels.tsa.arima.model import ARIMA
 
 import socket
 
-import pgmpy.models
-import pgmpy.inference
-
-from pgmpy.models import DynamicBayesianNetwork as DBN
-from pgmpy.inference import DBNInference
-
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
 
 # load model parameters
 A = np.zeros((order, order))
-B = np.zeros((order, 4))
+B = np.zeros((order, 3))
 C = np.zeros((1,order))
 path = './'
 fileA = open(path + 'A.txt','r')
@@ -44,7 +36,7 @@ for line in fileA.readlines():
 i = 0   
 for line in fileB.readlines():
     blist = line.split(',')
-    for j in range(4):
+    for j in range(3):
         B[i][j] = blist[j]
     i = i + 1
 
@@ -65,26 +57,26 @@ u_1_dimmer = model.set_variable(var_type='_u', var_name='u_1_dimmer')
 u_2_server = model.set_variable(var_type='_u', var_name='u_2_server')
 
 request_num = model.set_variable('_tvp', 'request_num') # time varying parameter
-res = model.set_variable('_tvp', 'res')
+request_num = model.set_variable('_tvp', 'res')
 
 # define equations
 if(order == 2):
-    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num + B[0][3]*res
-    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num + B[1][3]*res
+    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num/60
+    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num/60
     model.set_rhs('x_1', x_1_next)
     model.set_rhs('x_2', x_2_next) 
 elif(order == 3):
-    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + A[0][2]*x_3 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num + B[0][3]*res
-    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + A[1][2]*x_3 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num + B[1][3]*res
-    x_3_next = A[2][0]*x_1 + A[2][1]*x_2 + A[2][2]*x_3 + B[2][0]*u_1_dimmer + B[2][1]*u_2_server + B[2][2]*request_num + B[2][3]*res
+    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + A[0][2]*x_3 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num/60
+    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + A[1][2]*x_3 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num/60
+    x_3_next = A[2][0]*x_1 + A[2][1]*x_2 + A[2][2]*x_3 + B[2][0]*u_1_dimmer + B[2][1]*u_2_server + B[2][2]*request_num/60
     model.set_rhs('x_1', x_1_next)
     model.set_rhs('x_2', x_2_next)
     model.set_rhs('x_3', x_3_next)
 elif(order == 4):
-    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + A[0][2]*x_3 + A[0][3]*x_4 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num + B[0][3]*res
-    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + A[1][2]*x_3 + A[1][3]*x_4 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num + B[1][3]*res
-    x_3_next = A[2][0]*x_1 + A[2][1]*x_2 + A[2][2]*x_3 + A[2][3]*x_4 + B[2][0]*u_1_dimmer + B[2][1]*u_2_server + B[2][2]*request_num + B[2][3]*res
-    x_4_next = A[3][0]*x_1 + A[3][1]*x_2 + A[3][2]*x_3 + A[3][3]*x_4 + B[3][0]*u_1_dimmer + B[3][1]*u_2_server + B[3][2]*request_num + B[3][3]*res
+    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + A[0][2]*x_3 + A[0][3]*x_4 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num/60
+    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + A[1][2]*x_3 + A[1][3]*x_4 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num/60
+    x_3_next = A[2][0]*x_1 + A[2][1]*x_2 + A[2][2]*x_3 + A[2][3]*x_4 + B[2][0]*u_1_dimmer + B[2][1]*u_2_server + B[2][2]*request_num/60
+    x_4_next = A[3][0]*x_1 + A[3][1]*x_2 + A[3][2]*x_3 + A[3][3]*x_4 + B[3][0]*u_1_dimmer + B[3][1]*u_2_server + B[3][2]*request_num/60
     model.set_rhs('x_1', x_1_next)
     model.set_rhs('x_2', x_2_next)
     model.set_rhs('x_3', x_3_next)
@@ -130,21 +122,10 @@ mpc.bounds['lower','_u', 'u_2_server'] = 1
 mpc.bounds['upper','_u', 'u_1_dimmer'] = 1
 mpc.bounds['upper','_u', 'u_2_server'] = 3
 
+# define environment prediction model
+tvp_prediction = mpc.get_tvp_template()
 
-def scaleAndDiscrete(data,flag=0):
-    if(flag == 0):
-        minValue = data.min()
-        maxValue = data.max()
-        for i in range(len(data)):
-            data[i] = (data[i] - minValue) / (maxValue - minValue) * 100
-            #print(data[i])
-            data[i] = int(data[i] / 34)
-    else:
-        for i in range(len(data)):
-            data[i] = int(data[i] / flag)
-    return data
-
-traceName = './traces/wc_day53-r0-105m-l70.delta'
+traceName = './trace/wc_day53-r0-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -158,69 +139,39 @@ for req in reqs:
         curNum += 1
     else:
         curTime = time
-        reqList.append(int(curNum / 60))
+        reqList.append(curNum)
         curNum = 1
 
-reqList = scaleAndDiscrete(np.array(reqList),25)      
+train = reqList       
+env_model = ARIMA(train, order=(2,1,0))
+global env_model_fit
+env_model_fit = env_model.fit()
 
-resTrace = open('./traces/wc_res','r')
-reslines = resTrace.readlines()
-resList = []
-for res in reslines:
-    resList.append(res)
+global history
+history = reqList
 
-global req_history
-global res_history
-req_history = reqList
-res_history = resList
-
-# model build
-#global env_model
-env_model = DBN(
-        [
-            (("W", 0), ("R", 0)),
-            (("W", 0), ("W", 1)),
-            (("R", 0), ("R", 1)),
-        ]
-    )
-tdLength = len(reqList) - 1
-traindata = np.random.randint(low=0, high=2, size=(tdLength, 4))
-for i in range(tdLength):
-    traindata[i][0] = reqList[i]
-    traindata[i][1] = resList[i]
-    traindata[i][2] = reqList[i+1]
-    traindata[i][3] = resList[i+1]
-
-colnames = []
-for t in range(2):
-    colnames.extend([("W", t), ("R", t)])
-df = pd.DataFrame(traindata, columns=colnames)
-#print(df)
-env_model.fit(df)
-print(env_model.get_cpds(node=("W",1)))
-print(env_model.get_cpds(node=("R",1)))
-
-def predict(model, t):
-    modelInf = DBNInference(model)
-    W1 = modelInf.forward_inference([('W',1)],{('W',0):reqList[t-1]})[('W', 1)].values
-    R1 = modelInf.forward_inference([('R',1)],{('W',1):reqList[t],('R',0):resList[t-1]})[('R',1)].values
-    getValue = lambda cpd: round(cpd[0]*0 + cpd[1]*1 + cpd[2]*2)
-    req = getValue(W1)
-    res = getValue(R1)
-    return np.array([req,res])
-
-
-# define environment prediction model
-tvp_prediction = mpc.get_tvp_template()
+def predict(model, history_, t):
+    history = history_[0:t]
+    ar_order = len(model.arparams)
+    ma_order = len(model.maparams)
+    if(len(history) < ar_order or len(history) < ma_order):
+        value = history[-1]
+    else:  
+        value = model.arparams[0] 
+        for i in range(1, ar_order):
+            value += model.arparams[i] * history[-i]
+        for i in range(1, ma_order):
+            value += model.maparams[i] * history[-i]
+        value = history[-1] + value
+    return value
 
 def tvp_fun(t_now):
     pvalue_list = []
-    pvalue_list.append([req_history[int(t_now)],res_history[int(t_now)]])
+    pvalue_list.append(history[int(t_now)])
     for t in range(3):
-        pvalue = predict(env_model, int(t_now + t + 1))
+        pvalue = predict(env_model_fit, history, int(t_now + t + 1))
         pvalue_list.append(pvalue)
-    
-    #tvp_prediction['_tvp'] = pvalue_list
+    tvp_prediction['_tvp'] = pvalue_list
     return tvp_prediction
 
 mpc.set_tvp_fun(tvp_fun)
@@ -234,8 +185,7 @@ simulator.set_param(t_step = 1)
 tvp_sim = simulator.get_tvp_template()
 
 def tvp_fun_sim(t_now):
-    tvp_sim['request_num'] = req_history[int(t_now)]
-    tvp_sim['res'] = res_history[int(t_now)]
+    tvp_sim['request_num'] = history[int(t_now)]
     return tvp_sim
 
 simulator.set_tvp_fun(tvp_fun_sim)
@@ -265,7 +215,6 @@ u0 = np.array([1,1]).reshape(-1,1)
 # setup socket
 HOST = '127.0.0.1'          # Symbolic name meaning all available interfaces
 PORT = 50007                # Arbitrary non-privileged port
-print('Start connecting...')
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
     s.listen(1)

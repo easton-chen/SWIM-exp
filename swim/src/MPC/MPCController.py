@@ -69,8 +69,8 @@ res = model.set_variable('_tvp', 'res')
 
 # define equations
 if(order == 2):
-    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num + B[0][3]*res
-    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num + B[1][3]*res
+    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*(request_num+1)*25 + B[0][3]*res
+    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*(request_num+1)*25 + B[1][3]*res
     model.set_rhs('x_1', x_1_next)
     model.set_rhs('x_2', x_2_next) 
 elif(order == 3):
@@ -167,7 +167,7 @@ resTrace = open('./traces/wc_res','r')
 reslines = resTrace.readlines()
 resList = []
 for res in reslines:
-    resList.append(res)
+    resList.append(int(res))
 
 global req_history
 global res_history
@@ -207,7 +207,7 @@ def predict(model, t):
     getValue = lambda cpd: round(cpd[0]*0 + cpd[1]*1 + cpd[2]*2)
     req = getValue(W1)
     res = getValue(R1)
-    return np.array([req,res])
+    return [req,res]
 
 
 # define environment prediction model
@@ -219,9 +219,9 @@ def tvp_fun(t_now):
     for t in range(3):
         pvalue = predict(env_model, int(t_now + t + 1))
         pvalue_list.append(pvalue)
-    
-    #tvp_prediction['_tvp'] = pvalue_list
+    tvp_prediction['_tvp'] = pvalue_list
     return tvp_prediction
+
 
 mpc.set_tvp_fun(tvp_fun)
 

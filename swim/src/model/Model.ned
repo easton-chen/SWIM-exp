@@ -23,5 +23,6 @@ simple Model
     parameters:
         bool lowerDimmerMargin = default(false); // if true, the margin is only at the lower end
         
+        
     @class(Model);
 }

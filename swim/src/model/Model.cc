@@ -356,10 +356,11 @@ double Model::getDimmerMargin() const {
 }
 
 
-// source file
+// resource file
 void Model::preload() {
-    //const char* filePath = par("sourceFile").stringValue();
-    ifstream fin("traces/sourceFile");
+    const char* filePath = getSimulation()->getSystemModule()->par("sourceFile").stringValue();
+    ifstream fin(filePath);
+    //ifstream fin("traces/sourceFile");
     if (!fin) {
         error("Model %s could not read input file ", this->getFullName());
     } else {

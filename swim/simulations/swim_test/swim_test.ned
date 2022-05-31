@@ -46,7 +46,7 @@ network SWIM_TEST
         double maxServiceRate;
         double optRevenue = default(1.5);
         double penaltyMultiplier = default(1);
-        string uFile;
+        string sourceFile;
 
     submodules:
         sink: Sink {

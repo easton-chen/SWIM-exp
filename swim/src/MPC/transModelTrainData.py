@@ -53,4 +53,4 @@ for i in range(len(brownoutSeries)):
 
 column = ['dimmer','serverNum','avgThroughput','resUtil','timeoutRate']
 dataDf = pd.DataFrame(columns=column,data=dataList)
-dataDf.to_csv('/home/czy/Desktop/SWIM-exp/swim/src/MPC/trainDataRes.csv')
+dataDf.to_csv('/home/czy/Desktop/SWIM-exp/swim/src/MPC/modelTrainData/trainDataRes4.csv')

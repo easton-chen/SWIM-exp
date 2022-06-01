@@ -17,7 +17,7 @@ import socket
 from pgmpy.models import DynamicBayesianNetwork as DBN
 from pgmpy.inference import DBNInference
 
-case = 0 # wc-0,cl-1
+case = 1 # wc-0,cl-1
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -176,8 +176,10 @@ if(case == 1):
 req_model = req_model.fit()
 
  
-
-resTrace = open('./traces/wc_res','r')
+if(case == 0):
+    resTrace = open('./traces/wc_res','r')
+if(case == 1): 
+     resTrace = open('./traces/cl_res','r')
 reslines = resTrace.readlines()
 resList = []
 for res in reslines:

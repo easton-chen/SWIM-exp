@@ -45,14 +45,18 @@ void ExecutionManagerMod::initialize() {
 }
 
 void ExecutionManagerMod::handleMessage(cMessage *msg) {
+    //cout<<msg<<endl;
+    //cout<<completeRemoveMsg<<endl;
     if (msg == completeRemoveMsg) {
+        //cout<<"in handlemessage "<<endl;
         cModule* module = getSimulation()->getModule(serverBeingRemovedModuleId);
         notifyRemoveServerCompleted(module->getName());
         module->gate("out")->disconnect();
         module->deleteModule();
         serverBeingRemovedModuleId = -1;
-
+        
         cancelAndDelete(msg);
+        
         completeRemoveMsg = 0;
     } else {
         ExecutionManagerModBase::handleMessage(msg);
@@ -143,9 +147,11 @@ BootComplete*  ExecutionManagerMod::doRemoveServer() {
     }
 
     serverBeingRemovedModuleId = module->getId();
-
+    cout << "server removed id: " << serverBeingRemovedModuleId << endl;
+    
     // check to see if we can delete the server immediately (or if it's busy)
     if (isServerBeingRemoveEmpty()) {
+        //cout << "t=" << simTime() << " detect bug: in doRemoveServer????" << endl;
         completeServerRemoval();
     }
 
@@ -175,8 +181,10 @@ void ExecutionManagerMod::completeServerRemoval() {
     check_and_cast<MTBrownoutServer*>(module->getSubmodule(INTERNAL_SERVER_MODULE_NAME))->clearServerCache();
 
     completeRemoveMsg = new cMessage("completeRemove");
+    
     cout << "scheduled complete remove at " << simTime() << endl;
     scheduleAt(simTime(), completeRemoveMsg);
+    
 }
 
 bool ExecutionManagerMod::isServerBeingRemoveEmpty() {

@@ -163,8 +163,8 @@ def main():
 
     model = modelBuild(NetData,CpuPercentData)
 
-    trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_day53-r0-105m-l70.delta','r')
-    #trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/clarknet-http-105m-l70.delta','r')
+    #trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_day53-r0-105m-l70.delta','r')
+    trace = open('/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/clarknet-http-105m-l70.delta','r')
     curTime = 0
     curTime = 0
     curNum = 0
@@ -205,7 +205,7 @@ def main():
             resUtil.append(2)
         #resUtil.append(getValue(R1))
     
-    resTraceName = '/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/wc_res'
+    resTraceName = '/home/czy/Desktop/SWIM-exp/swim/src/MPC/traces/cl_res'
     resTrace = open(resTraceName,'w')
     for i in range(len(resUtil)):
         resTrace.write(str(resUtil[i]) + '\n')

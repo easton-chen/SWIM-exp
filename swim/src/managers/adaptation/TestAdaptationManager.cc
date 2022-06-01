@@ -70,28 +70,27 @@ Tactic* TestAdaptationManager::evaluate() {
 	server.sin_family = AF_INET;
 	server.sin_port = htons(50007);
 	
-	// 进行连接
+	// connect to controller
 	if (connect(socket_desc, (struct sockaddr*)&server, sizeof(server)) < 0) {
-		perror("connot connect");
+		perror("SWIM connot connect to controller!");
 	}
 
-    // 发送数据
+    // send data
 
     sprintf(message, "%lf", timeoutRate);
     if (::send(socket_desc, message, strlen(message), 0) < 0) {
-        perror("send data error");
+        perror("SWIM send data error");
     }
     
     printf("send message success\n");
-    // 接收数据
+    // receive data
     if (recv(socket_desc, server_reply, 100, 0) < 0) {
-        perror("recv error");
+        perror("SWIM recv error");
     }
     
-    printf("recv success: ");
+    printf("SWIM recv success: \n");
     //puts(server_reply);
 	
-	// 关闭socket
 	close(socket_desc);
 
     const char s[2] = " ";
@@ -114,11 +113,15 @@ Tactic* TestAdaptationManager::evaluate() {
     int dServer = serverNum - pModel->getServers();
     if(dServer > 0){
         while(dServer--){
-            pMacroTactic->addTactic(new AddServerTactic);
+            if(!isServerBooting){
+                pMacroTactic->addTactic(new AddServerTactic);
+            }
         }
     } else if(dServer < 0){
         while(dServer++){
-            pMacroTactic->addTactic(new RemoveServerTactic);
+            if(!isServerBooting){
+                pMacroTactic->addTactic(new RemoveServerTactic);
+            }
         }
     }
     

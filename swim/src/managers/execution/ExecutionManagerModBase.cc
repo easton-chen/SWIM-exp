@@ -38,6 +38,7 @@ void ExecutionManagerModBase::initialize() {
 //    testMsg = new cMessage;
 //    testMsg->setKind(0);
 //    scheduleAt(simTime() + 1, testMsg);
+    
 }
 
 void ExecutionManagerModBase::handleMessage(cMessage* msg) {
@@ -51,6 +52,7 @@ void ExecutionManagerModBase::handleMessage(cMessage* msg) {
         }
         return;
     }
+    //cout << "t=" << simTime() << " detect bug in handleMessage() method" << endl;
     BootComplete* bootComplete = check_and_cast<BootComplete *>(msg);
 
     doAddServerBootComplete(bootComplete);
@@ -135,10 +137,9 @@ void ExecutionManagerModBase::setBrownout(double factor) {
 }
 
 void ExecutionManagerModBase::notifyRemoveServerCompleted(const char* serverId) {
-
+    //cout<<"in notify"<<endl;
     pModel->removeServer();
     serverRemoveInProgress--;
-
     // emit signal to notify others (notably iProbe)
     emit(serverRemovedSignal, serverId);
 }

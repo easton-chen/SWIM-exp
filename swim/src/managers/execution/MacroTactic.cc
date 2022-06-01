@@ -14,6 +14,7 @@
  *******************************************************************************/
 
 #include "MacroTactic.h"
+#include <unistd.h>
 
 void MacroTactic::addTactic(Tactic* pTactic) {
     tactics.push_back(pTactic);
@@ -22,6 +23,7 @@ void MacroTactic::addTactic(Tactic* pTactic) {
 void MacroTactic::execute(ExecutionManager* execMgr) {
     for (TacticList::iterator it = tactics.begin(); it != tactics.end(); ++it) {
         (*it)->execute(execMgr);
+        //sleep(5);
     }
 }
 

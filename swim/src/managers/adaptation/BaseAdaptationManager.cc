@@ -17,6 +17,7 @@
 #include "managers/ModulePriorities.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <iostream>
+#include <unistd.h>
 
 using namespace boost::posix_time;
 using namespace omnetpp;
@@ -55,6 +56,7 @@ void BaseAdaptationManager::decisionComplete() {
         if (!pTactic->isEmpty()) {
             std::cout << "AdaptationMgr simtime=" << simTime() << " tactic=" << *pTactic << std::endl;
             ExecutionManager* pExecMgr = check_and_cast<ExecutionManager*> (getParentModule()->getSubmodule("executionManager"));
+            
             pTactic->execute(pExecMgr);
         }
         delete pTactic;

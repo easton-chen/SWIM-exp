@@ -33,7 +33,7 @@ fi
 
 python $CONTROLLER >MPC.log &
 PID=$!
-sleep 5s
+sleep 8s
 opp_runall -j1 $MAINSIMDIR/$MAINSIMEXEC $INIFILE -u Cmdenv -c $1 -n ..:$MAINSIMDIR:../../../queueinglib:../../src -lqueueinglib $RUNS
 
 sleep 2s

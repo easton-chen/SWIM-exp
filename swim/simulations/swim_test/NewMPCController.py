@@ -17,7 +17,7 @@ import socket
 from pgmpy.models import DynamicBayesianNetwork as DBN
 from pgmpy.inference import DBNInference
 
-case = 1 # wc-0,cl-1
+case = 0 # wc-0,cl-1
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -106,9 +106,9 @@ mterm = 0*x_1
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
     if(case == 0):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.2*u_1_dimmer+0.002*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.1*u_1_dimmer+0.01*u_2_server
     if(case == 1):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.14*u_1_dimmer+0.001*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.14*u_1_dimmer+0.01*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -179,7 +179,8 @@ req_model = req_model.fit()
 if(case == 0):
     resTrace = open('./traces/wc_res','r')
 if(case == 1): 
-     resTrace = open('./traces/cl_res','r')
+    resTrace = open('./traces/cl_res','r')
+#resTrace = open('./traces/constResFile','r')
 reslines = resTrace.readlines()
 resList = []
 for res in reslines:
@@ -281,14 +282,23 @@ mpc.x0 = x0
 mpc.set_initial_guess()
 
 # KF init
-Q = np.array([1e-5, 1e-5, 1e-5, 1e-5]).reshape(2,2)
-R = np.array([1e-5]).reshape(1,1)   
-x_hat = x0
+KF_flag = 1
+#Q = np.array([1e-2, 1e-2, 1e-2, 1e-2]).reshape(2,2)
+Q = np.mat([[0.1,0],[0,0.1]])
+#R = np.array([1e-4]).reshape(1,1)   
+R = np.mat([0.00001])
+x_hat = np.mat([[0],[0]])
 #x_hat_ = x0
-P = np.array([0, 0, 0, 0]).reshape(2,2)
+P = np.mat([[0,0],[0,0]])
+#P = np.array([0, 0, 0, 0]).reshape(2,2)
 #P_ = np.array([0, 0, 0, 0]).reshape(2,2)
-K = np.array([0, 0]).reshape(2,1)
+#K = np.array([0, 0]).reshape(2,1)
+C_mat = np.mat(C)
+A_mat = np.mat(A)
+
 u0 = np.array([0,1]).reshape(-1,1)
+last_u0 = u0
+
 
 t = 0
 
@@ -309,17 +319,35 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 y = np.array([float(data)]).reshape(1,1)
                 # KF, obtain x_hat
                 x_p = simulator.make_step(u0)
-                P = np.matmul(np.matmul(A, P),A.T) + Q
-                K = np.matmul(np.matmul(P,C.T), np.linalg.inv(np.matmul(np.matmul(C,P),C.T) + R))
-                x_hat = x_p + np.matmul(K, y - np.matmul(C, x_p))
-                P = np.matmul(np.eye(2) - np.matmul(K, C),P)
+                y_p = C_mat * x_p
+                
+                x_p = np.mat(x_p)
+                x_hat = x_p
+                
+                if(KF_flag):
+                    #P_ = np.matmul(np.matmul(A, P),A.T) + Q
+                    P_ = A_mat * P * A_mat.T + Q
+                    #K = np.matmul(np.matmul(P_,C.T), np.linalg.inv(np.matmul(np.matmul(C,P_),C.T) + R))
+                    K = P_ * C_mat.T / (C_mat * P_ * C_mat.T + R) 
+                    #x_hat = x_p + np.matmul(K, y - np.matmul(C, x_p))
+                    
+                    x_hat = x_p + K * (y - C_mat * x_p)
+                    #P = np.matmul(np.eye(2) - np.matmul(K, C),P_)
+                    P = (np.eye(2) - K * C_mat) * P_
                 u0 = mpc.make_step(x_hat)
+                
+                print("measure y: " + str(y) + "predict y: " + str(y_p) + "KF est y: " + str(C_mat * x_hat))
                 #if(case == 0):
                 #    if(req_history[t] < 20):
                 #        u0[1][0] = 1
                 #if(case == 1):
                 #    if(req_history[t] < 15):
                 #        u0[1][0] = 1
+                
+                # cannot remove 2 servers in a loop
+                if(int(last_u0[1][0]) == 3 and int(u0[1][0]) == 1):
+                    u0[1][0] = 2
                 sendData = (str(u0[0][0]) + ' ' + str(int(u0[1][0]))).encode()
                 conn.sendall(sendData)
                 t = t + 1
+                last_u0 = u0

@@ -82,7 +82,7 @@ Tactic* TestAdaptationManager::evaluate() {
         perror("SWIM send data error");
     }
     
-    printf("send message success\n");
+    printf("SWIM send message 'y = %lf' success\n", timeoutRate);
     // receive data
     if (recv(socket_desc, server_reply, 100, 0) < 0) {
         perror("SWIM recv error");

@@ -123,13 +123,13 @@ void Model::serverBecameActive()
 void Model::removeServer()
 {
     if (isServerBooting()) {
-        cout<<"model->removeserver->isserverbooting"<<endl;
+        //cout<<"model->removeserver->isserverbooting"<<endl;
         /* the server we're removing is not active yet */
         removeExpectedChange();
     } else {
         activeServerCountLast = activeServers;
         timeActiveServerCountLast = simTime().dbl();
-        cout<<"model->removeserver"<<endl;
+        //cout<<"model->removeserver"<<endl;
         activeServers--;
     }
 

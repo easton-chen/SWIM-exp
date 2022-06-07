@@ -147,7 +147,7 @@ BootComplete*  ExecutionManagerMod::doRemoveServer() {
     }
 
     serverBeingRemovedModuleId = module->getId();
-    cout << "server removed id: " << serverBeingRemovedModuleId << endl;
+    //cout << "server removed id: " << serverBeingRemovedModuleId << endl;
     
     // check to see if we can delete the server immediately (or if it's busy)
     if (isServerBeingRemoveEmpty()) {

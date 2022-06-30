@@ -17,7 +17,7 @@ import socket
 from pgmpy.models import DynamicBayesianNetwork as DBN
 from pgmpy.inference import DBNInference
 
-case = 0 # wc-0,cl-1
+case = 1 # wc-0,cl-1
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -26,7 +26,10 @@ model = do_mpc.model.Model(model_type)
 A = np.zeros((order, order))
 B = np.zeros((order, 4))
 C = np.zeros((1,order))
-path = './model/'
+if(case == 0):
+    path = './model/wc/'
+elif(case == 1):
+    path = './model_try/'
 fileA = open(path + 'A.txt','r')
 fileB = open(path + 'B.txt','r')
 fileC = open(path + 'C.txt','r')
@@ -106,9 +109,10 @@ mterm = 0*x_1
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
     if(case == 0):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.1*u_1_dimmer+0.01*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.01*u_1_dimmer+0.0035*u_2_server
+        #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num*60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
     if(case == 1):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2#-0.14*u_1_dimmer+0.01*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.3*u_1_dimmer+0.05*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -248,7 +252,8 @@ def tvp_fun(t_now):
     pvalue_list.append([req_history[int(t_now)],res_history[int(t_now)]])
     for t in range(3):
         pvalue = predict(req_model, res_model, int(t_now + t + 1))
-        pvalue_list.append(pvalue)
+        #pvalue_list.append(pvalue)
+        pvalue_list.append([req_history[int(t_now)],res_history[int(t_now)]])
     tvp_prediction['_tvp'] = pvalue_list
     return tvp_prediction
 
@@ -282,7 +287,7 @@ mpc.x0 = x0
 mpc.set_initial_guess()
 
 # KF init
-KF_flag = 1
+KF_flag = 0
 #Q = np.array([1e-2, 1e-2, 1e-2, 1e-2]).reshape(2,2)
 Q = np.mat([[0.1,0],[0,0.1]])
 #R = np.array([1e-4]).reshape(1,1)   
@@ -335,8 +340,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     #P = np.matmul(np.eye(2) - np.matmul(K, C),P_)
                     P = (np.eye(2) - K * C_mat) * P_
                 u0 = mpc.make_step(x_hat)
+                u0[1][0] = round(u0[1][0])
                 
-                print("measure y: " + str(y) + "predict y: " + str(y_p) + "KF est y: " + str(C_mat * x_hat))
+                print("t = " + str(t) + " measure y: " + str(y) + "predict y: " + str(y_p) + "KF est y: " + str(C_mat * x_hat))
                 #if(case == 0):
                 #    if(req_history[t] < 20):
                 #        u0[1][0] = 1

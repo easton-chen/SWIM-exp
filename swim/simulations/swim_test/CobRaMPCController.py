@@ -13,16 +13,17 @@ from statsmodels.tsa.arima.model import ARIMA
 
 import socket
 
+case = 1 # 0 for wc, 1 for cl
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
 
 # load model parameters
 A = np.zeros((order, order))
-B = np.zeros((order, 3))
+B = np.zeros((order, 4))
 C = np.zeros((1,order))
-D = np.zeros((1,3))
-path = './CobRaModel/'
+D = np.zeros((1,4))
+path = './CobRaModel/new/'
 fileA = open(path + 'A.txt','r')
 fileB = open(path + 'B.txt','r')
 fileC = open(path + 'C.txt','r')
@@ -63,11 +64,12 @@ u_1_dimmer = model.set_variable(var_type='_u', var_name='u_1_dimmer')
 u_2_server = model.set_variable(var_type='_u', var_name='u_2_server')
 
 request_num = model.set_variable('_tvp', 'request_num') # time varying parameter
+res = model.set_variable('_tvp', 'res')
 
 # define equations
 if(order == 2):
-    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num/60
-    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num/60
+    x_1_next = A[0][0]*x_1 + A[0][1]*x_2 + B[0][0]*u_1_dimmer + B[0][1]*u_2_server + B[0][2]*request_num + B[0][3]*res
+    x_2_next = A[1][0]*x_1 + A[1][1]*x_2 + B[1][0]*u_1_dimmer + B[1][1]*u_2_server + B[1][2]*request_num + B[1][3]*res
     model.set_rhs('x_1', x_1_next)
     model.set_rhs('x_2', x_2_next) 
 elif(order == 3):
@@ -104,7 +106,7 @@ mpc.set_param(**setup_mpc)
 mterm = 0*x_1
 
 if(order == 2):
-    lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num/60)**2-0.0002*u_1_dimmer+0.00001*u_2_server
+    lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.02*u_1_dimmer+0.001*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
@@ -130,8 +132,11 @@ mpc.bounds['upper','_u', 'u_2_server'] = 3
 # define environment prediction model
 tvp_prediction = mpc.get_tvp_template()
 
-traceName = './traces/wc_day53-r0-105m-l70.delta'
-#traceName = './traces/clarknet-http-105m-l70.delta'
+# read req trace
+if(case == 0):
+    traceName = './traces/wc_day53-r0-105m-l70.delta'
+if(case == 1):
+    traceName = './traces/clarknet-http-105m-l70.delta'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -145,18 +150,31 @@ for req in reqs:
         curNum += 1
     else:
         curTime = time
-        reqList.append(curNum)
+        reqList.append(int(curNum/60))
         curNum = 1
 
-global history
-history = reqList
+# read res trace
+if(case == 0):
+    resTrace = open('./traces/wc_res','r')
+if(case == 1): 
+    resTrace = open('./traces/cl_res','r')
+#resTrace = open('./traces/constResFile','r')
+reslines = resTrace.readlines()
+resList = []
+for res in reslines:
+    resList.append(int(res))
+
+global req_history
+global res_history
+req_history = reqList
+res_history = resList  
 
 
 def tvp_fun(t_now):
     pvalue_list = []
-    pvalue_list.append(history[int(t_now)])
+    pvalue_list.append([req_history[int(t_now)],res_history[int(t_now)]])
     for t in range(3):
-        pvalue_list.append(history[int(t_now)])
+        pvalue_list.append([req_history[int(t_now)],res_history[int(t_now)]])
     tvp_prediction['_tvp'] = pvalue_list
     return tvp_prediction
 
@@ -171,7 +189,8 @@ simulator.set_param(t_step = 1)
 tvp_sim = simulator.get_tvp_template()
 
 def tvp_fun_sim(t_now):
-    tvp_sim['request_num'] = history[int(t_now)]
+    tvp_sim['request_num'] = req_history[int(t_now)]
+    tvp_sim['res'] = res_history[int(t_now)]
     return tvp_sim
 
 simulator.set_tvp_fun(tvp_fun_sim)
@@ -189,6 +208,7 @@ mpc.x0 = x0
 mpc.set_initial_guess()
 
 # KF init
+KF_flag = 0
 Q = np.array([1e-5, 1e-5, 1e-5, 1e-5]).reshape(2,2)
 R = np.array([1e-5]).reshape(1,1)   
 x_hat = x0
@@ -197,6 +217,7 @@ P = np.array([0, 0, 0, 0]).reshape(2,2)
 #P_ = np.array([0, 0, 0, 0]).reshape(2,2)
 K = np.array([0, 0]).reshape(2,1)
 u0 = np.array([1,1]).reshape(-1,1)
+last_u0 = u0
 t = 0
 
 # setup socket
@@ -216,11 +237,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 y = np.array([float(data)]).reshape(1,1)
                 # KF, obtain x_hat
                 x_p = simulator.make_step(u0)
-                P = np.matmul(np.matmul(A, P),A.T) + Q
-                K = np.matmul(np.matmul(P,C.T), np.linalg.inv(np.matmul(np.matmul(C,P),C.T) + R))
-                x_hat = x_p + np.matmul(K, y - np.matmul(C, x_p) - np.array([D[0][2] * history[t]]))
-                t = t + 1
-                P = np.matmul(np.eye(2) - np.matmul(K, C),P)
+                x_hat = x_p
+                if(KF_flag):
+                    P = np.matmul(np.matmul(A, P),A.T) + Q
+                    K = np.matmul(np.matmul(P,C.T), np.linalg.inv(np.matmul(np.matmul(C,P),C.T) + R))
+                    x_hat = x_p + np.matmul(K, y - np.matmul(C, x_p) - np.array([D[0][2] * req_history[t]]))
+                    P = np.matmul(np.eye(2) - np.matmul(K, C),P)
                 u0 = mpc.make_step(x_hat)
+                u0[1][0] = round(u0[1][0])
+                if(int(last_u0[1][0]) == 3 and int(u0[1][0]) == 1):
+                    u0[1][0] = 2
                 sendData = (str(u0[0][0]) + ' ' + str(int(u0[1][0]))).encode()
                 conn.sendall(sendData)
+                t = t + 1
+                last_u0 = u0

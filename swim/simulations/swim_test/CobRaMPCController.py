@@ -106,7 +106,10 @@ mpc.set_param(**setup_mpc)
 mterm = 0*x_1
 
 if(order == 2):
-    lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.02*u_1_dimmer+0.001*u_2_server
+    if(case == 0):
+        lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.1*u_1_dimmer+0.03*u_2_server
+    if(case == 1):
+        lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.1*u_1_dimmer+0.03*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2-1))
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server

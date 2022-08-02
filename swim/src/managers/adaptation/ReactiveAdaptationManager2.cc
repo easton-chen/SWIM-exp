@@ -38,7 +38,7 @@ Tactic* ReactiveAdaptationManager2::evaluate() {
     double dimmer = pModel->getDimmerFactor();
     bool isServerBooting = pModel->getServers() > pModel->getActiveServers();
     double responseTime = pModel->getObservations().avgResponseTime;
-
+    /*
     if (responseTime > RT_THRESHOLD) {
         if (!isServerBooting
                 && pModel->getServers() < pModel->getMaxServers()) {
@@ -56,6 +56,6 @@ Tactic* ReactiveAdaptationManager2::evaluate() {
             pMacroTactic->addTactic(new RemoveServerTactic);
         }
     }
-
+    */
     return pMacroTactic;
 }

@@ -13,7 +13,7 @@ from statsmodels.tsa.arima.model import ARIMA
 
 import socket
 
-case = 1 # 0 for wc, 1 for cl
+case = 3 # 0 for wc, 1 for cl
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -106,6 +106,7 @@ mpc.set_param(**setup_mpc)
 mterm = 0*x_1
 
 if(order == 2):
+    lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.1*u_1_dimmer+0.03*u_2_server
     if(case == 0):
         lterm = (C[0][0]*x_1+C[0][1]*x_2+D[0][2]*request_num+D[0][3]*res)**2-0.1*u_1_dimmer+0.03*u_2_server
     if(case == 1):
@@ -140,6 +141,10 @@ if(case == 0):
     traceName = './traces/wc_day53-r0-105m-l70.delta'
 if(case == 1):
     traceName = './traces/clarknet-http-105m-l70.delta'
+if(case == 2):
+    traceName = './traces/constReqTrace1'
+if(case == 3):
+    traceName = './traces/constReqTrace2'
 trace = open(traceName,'r')
 curTime = 0
 curNum = 0
@@ -161,6 +166,10 @@ if(case == 0):
     resTrace = open('./traces/wc_res','r')
 if(case == 1): 
     resTrace = open('./traces/cl_res','r')
+if(case == 2):
+    resTrace = open('./traces/constResTrace1','r')
+if(case == 3):
+    resTrace = open('./traces/constResTrace2','r')
 #resTrace = open('./traces/constResFile','r')
 reslines = resTrace.readlines()
 resList = []
@@ -221,6 +230,7 @@ P = np.array([0, 0, 0, 0]).reshape(2,2)
 K = np.array([0, 0]).reshape(2,1)
 u0 = np.array([1,1]).reshape(-1,1)
 last_u0 = u0
+last_u0[1][0] = 3
 t = 0
 
 # setup socket

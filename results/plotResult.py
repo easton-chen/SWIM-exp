@@ -2,9 +2,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('./SWIM_SA/csv/Reactive-3.csv')
+#df = pd.read_csv('./SWIM_SA/csv/Reactive-3.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
-df = pd.read_csv('./SWIM_TEST/csv/Test-3.csv')
+df = pd.read_csv('./SWIM_TEST/csv/Test-5.csv')
+#df = pd.read_csv('./all/new/CobRA-0.csv')
+case = 1
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 brownout = df.loc[df['name'] == 'brownoutFactor:vector']
 serverNum = df.loc[df['name'] == 'activeServers:vector']
@@ -26,7 +28,7 @@ serverNumSeries = serverNumSeries[1:]
 basicMedianResponseTimeSeries = basicMedianResponseTime['vecvalue'].array[0].split(' ')
 optMedianResponseTimeSeries = optMedianResponseTime['vecvalue'].array[0].split(' ')
 timeoutRateSeries = timeoutRate['vecvalue'].array[0].split(' ')
-resUtilSeries = resUtil['vecvalue'].array[0].split(' ')
+#resUtilSeries = resUtil['vecvalue'].array[0].split(' ')
 
 #print('brownout' + '\t' + 'serverNum' + '\t' + 'avgThroughput' + 'avgResponseTime' + '\t' 
     #+ 'basicMedianResponseTime' + '\t' + 'optMedianResponseTime' + '\t' 
@@ -48,7 +50,7 @@ for i in range(tlen):
     serverNumSeries[i] = float(serverNumSeries[i])
     timeoutRateSeries[i] = float(timeoutRateSeries[i])
     avgResponseTimeSeries[i] = float(avgResponseTimeSeries[i])
-    resUtilSeries[i] = float(resUtilSeries[i])
+    #resUtilSeries[i] = float(resUtilSeries[i])
     
     if(avgThroughputSeries[i] != 0):
         avgThroughputSeries[i] = 1 / avgThroughputSeries[i]
@@ -70,6 +72,26 @@ print("total revenue = " + str(accRevenue))
 print("total penalty = " + str(accPenalty))    
 print("total Cost = " + str(accCost))       
 
+avgTimeoutRate = np.mean(timeoutRateSeries[2:])
+avgRestime = np.mean(avgResponseTimeSeries[2:])
+maxTimeoutRate = max(timeoutRateSeries[2:])
+maxRestime = max(avgResponseTimeSeries[2:])
+print("avg timeout:" + str(avgTimeoutRate) + " avg restime:" + str(avgRestime) + " max timeout: " + str(maxTimeoutRate) + " max restime:" + str(maxRestime))
+
+
+resUtilSeries = []
+if(case == 0):
+    resFile = open("./wc_res")
+    resUtils = resFile.readlines()
+    for res in resUtils:
+        resUtilSeries.append(res)
+if(case == 1):
+    resFile = open("./cl_res")
+    resUtils = resFile.readlines()
+    for res in resUtils:
+        resUtilSeries.append(res)
+
+
 fig,axarr = plt.subplots(6,1)  
 fig.set_size_inches(6.4, 9.6)
 plt.subplots_adjust(hspace=1)
@@ -87,6 +109,11 @@ axarr[1].set_title('resUtil')
 axarr[1].set_ylabel('resUtil')                          
 axarr[1].set_ylim(0,3) 
 axarr[1].plot(range(tlen),resUtilSeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
+
+#axarr[1].set_title('avgresponsetime')
+#axarr[1].set_ylabel('responsetime')                          
+#axarr[1].set_ylim(0,1) 
+#axarr[1].plot(range(tlen),avgResponseTimeSeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
 axarr[2].set_title('dimmer')
 axarr[2].set_ylabel('dimmer')                          
@@ -109,4 +136,3 @@ axarr[5].set_ylim(0,max(utilitySeries))
 axarr[5].plot(range(tlen),utilitySeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
 plt.show()
-

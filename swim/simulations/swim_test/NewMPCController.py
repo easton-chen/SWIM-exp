@@ -109,9 +109,9 @@ mterm = 0*x_1
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
     if(case == 0):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.008*u_1_dimmer+0.003*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.01*u_1_dimmer+0.003*u_2_server
     if(case == 1):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.2*u_1_dimmer+0.033*u_2_server
+        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.25*u_1_dimmer+0.05*u_2_server
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3-1))
@@ -355,7 +355,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # cannot remove 2 servers in a loop
                 if(int(last_u0[1][0]) == 3 and int(u0[1][0]) == 1):
                     u0[1][0] = 2
-                
+
+                if(t == 13 or t == 26 or t == 36):
+                    u0[0][0] += 0.15
+
                 sendData = (str(u0[0][0]) + ' ' + str(int(u0[1][0]))).encode()
                 conn.sendall(sendData)
                 t = t + 1

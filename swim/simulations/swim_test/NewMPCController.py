@@ -17,6 +17,8 @@ import socket
 from pgmpy.models import DynamicBayesianNetwork as DBN
 from pgmpy.inference import DBNInference
 
+import MPCAdaptor
+
 case = 1 # wc-0,cl-1,const-2
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
@@ -341,6 +343,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     x_hat = x_p + K * (y - C_mat * x_p)
                     #P = np.matmul(np.eye(2) - np.matmul(K, C),P_)
                     P = (np.eye(2) - K * C_mat) * P_
+                
+                # MPC setting
+                if(t == 50):
+                    mpc.bounds['upper','_u', 'u_1_dimmer'] = 0
+                    mpc.setup()
+
+                # calculate control input
                 u0 = mpc.make_step(x_hat)
                 u0[1][0] = round(u0[1][0])
                 
@@ -356,8 +365,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 if(int(last_u0[1][0]) == 3 and int(u0[1][0]) == 1):
                     u0[1][0] = 2
 
-                if(t == 13 or t == 26 or t == 36):
-                    u0[0][0] += 0.15
+                #if(t == 13 or t == 26 or t == 36):
+                #    u0[0][0] += 0.15
 
                 sendData = (str(u0[0][0]) + ' ' + str(int(u0[1][0]))).encode()
                 conn.sendall(sendData)

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 #df = pd.read_csv('./SWIM_SA/csv/Reactive-3.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
-df = pd.read_csv('./SWIM_TEST/csv/Test-5.csv')
+df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
 #df = pd.read_csv('./all/new/CobRA-0.csv')
 case = 1
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
@@ -42,6 +42,9 @@ accRevenue = 0
 accPenalty = 0
 accCost = 0
 utilitySeries = []
+qfCost = []
+qfRevenue = []
+qfTimeout = []
 
 for i in range(tlen):
     avgThroughputSeries[i] = float(avgThroughputSeries[i]) 
@@ -66,6 +69,11 @@ for i in range(tlen):
         accPenalty = accPenalty + penalty
         accCost = accCost + cost 
         utilitySeries.append(revenue + cost - penalty)
+        # quality function for softgoal 
+        qfCost.append(1 - 0.1 * serverNumSeries[i])
+        qfRevenue.append()
+        qfTimeout.append()
+        
 
 print("total utility = " + str(accUtility))     
 print("total revenue = " + str(accRevenue))    
@@ -84,12 +92,12 @@ if(case == 0):
     resFile = open("./wc_res")
     resUtils = resFile.readlines()
     for res in resUtils:
-        resUtilSeries.append(res)
+        resUtilSeries.append(float(res)/2)
 if(case == 1):
     resFile = open("./cl_res")
     resUtils = resFile.readlines()
     for res in resUtils:
-        resUtilSeries.append(res)
+        resUtilSeries.append(float(res)/2)
 
 
 fig,axarr = plt.subplots(6,1)  

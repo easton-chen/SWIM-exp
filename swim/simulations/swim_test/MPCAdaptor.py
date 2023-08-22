@@ -3,7 +3,7 @@ class MPCAdaptor:
     def __init__(self):
         self.t = 0
 
-    def adapt(self):
+    def adapt(self, t):
         weights = [0.33, 0.33, 0.33]
         bounds1 = [0, 1]
         bounds2 = [1, 3]

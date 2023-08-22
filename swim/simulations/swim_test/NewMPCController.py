@@ -18,6 +18,7 @@ from pgmpy.models import DynamicBayesianNetwork as DBN
 from pgmpy.inference import DBNInference
 
 import MPCAdaptor
+import Environment
 
 case = 1 # wc-0,cl-1,const-2
 order = 2
@@ -149,8 +150,6 @@ def scaleAndDiscrete(data,flag=0):
     return data
 
 # define environment prediction model
-
-
 if(case == 0):
     traceName = './traces/wc_day53-r0-105m-l70.delta'
 if(case == 1):

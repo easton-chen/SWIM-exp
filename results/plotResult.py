@@ -71,8 +71,18 @@ for i in range(tlen):
         utilitySeries.append(revenue + cost - penalty)
         # quality function for softgoal 
         qfCost.append(1 - 0.1 * serverNumSeries[i])
-        qfRevenue.append()
-        qfTimeout.append()
+    
+        pire = (1 - timeoutRateSeries[i]) * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i]) - 0.5 * timeoutRateSeries[i]
+        if(pire > 1):
+            qfre = 0.4 * pire + 0.4
+        else:
+            qfre = 0.533 * pire + 0.266
+        qfRevenue.append(qfre)
+        if(timeoutRateSeries[i] < 0.25):
+            qfto = -2 * timeoutRateSeries[i] + 1
+        else:
+            qfto = -0.667 * timeoutRateSeries[i] + 0.667
+        qfTimeout.append(qfto)
         
 
 print("total utility = " + str(accUtility))     
@@ -143,4 +153,14 @@ axarr[5].set_ylabel('Utility')
 axarr[5].set_ylim(0,max(utilitySeries)) 
 axarr[5].plot(range(tlen),utilitySeries,linestyle='--',alpha=0.5,color='r')   #线图：linestyle线性，alpha透明度，color颜色，label图例文
 
+plt.show()
+
+print("avg QFcost: " + str(np.mean(qfCost)) + "avg QFrevenue: " + str(np.mean(qfRevenue)) + "avg QFtimeout: " + str(np.mean(qfTimeout)))
+x = np.arange(0,tlen)
+fig0 = plt.figure(num=1, figsize=(8, 3)) 
+ax0 = fig0.add_subplot(1,1,1)
+ax0.plot(x, np.array(qfCost), label='Cost', linestyle=':')
+ax0.plot(x, np.array(qfRevenue), label='Revenue', linestyle=':')
+ax0.plot(x, np.array(qfTimeout), label='Timeout', linestyle=':')
+ax0.legend(loc='best')
 plt.show()

@@ -45,6 +45,11 @@ utilitySeries = []
 qfCost = []
 qfRevenue = []
 qfTimeout = []
+sat = []
+if(case == 0):
+    weights = [0.98,0.01,0.01]
+else:
+    weights = [0.8,0.16,0.04]
 
 for i in range(tlen):
     avgThroughputSeries[i] = float(avgThroughputSeries[i]) 
@@ -69,20 +74,36 @@ for i in range(tlen):
         accPenalty = accPenalty + penalty
         accCost = accCost + cost 
         utilitySeries.append(revenue + cost - penalty)
-        # quality function for softgoal 
-        qfCost.append(1 - 0.1 * serverNumSeries[i])
-    
-        pire = (1 - timeoutRateSeries[i]) * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i]) - 0.5 * timeoutRateSeries[i]
-        if(pire > 1):
-            qfre = 0.4 * pire + 0.4
-        else:
-            qfre = 0.533 * pire + 0.266
-        qfRevenue.append(qfre)
-        if(timeoutRateSeries[i] < 0.25):
-            qfto = -2 * timeoutRateSeries[i] + 1
-        else:
-            qfto = -0.667 * timeoutRateSeries[i] + 0.667
-        qfTimeout.append(qfto)
+        
+        
+
+MAX_REQ = max(avgThroughputSeries)
+for i in range(tlen): 
+    # quality function for softgoal 
+    qfco = 1 - 0.1 * serverNumSeries[i]
+    qfCost.append(qfco)
+    pire = (1 - timeoutRateSeries[i]) * (1.5 * (1 - brownoutSeries[i]) + 1 * brownoutSeries[i]) - 0.5 * timeoutRateSeries[i]
+    if(pire > 1):
+        qfre = 0.4 * pire + 0.4
+    else:
+        qfre = 0.533 * pire + 0.266
+    qfRevenue.append(qfre)
+    if(timeoutRateSeries[i] < 0.25):
+        qfto = -2 * timeoutRateSeries[i] + 1
+    else:
+        qfto = -0.667 * timeoutRateSeries[i] + 0.667
+    qfTimeout.append(qfto)
+    if(avgThroughputSeries[i] < 3 / 4 * MAX_REQ):
+        if(case == 0):
+            weights = [0.98,0.01,0.01]
+        elif(case == 1):
+            weights = [0.8,0.16,0.04]
+    else:
+        if(case == 0):
+            weights = [0.96, 0.04, 0.001]
+        elif(case == 1):
+            weights = [1, 0.3, 0.03]
+    sat.append(weights[0] * qfto + weights[1] * qfre + weights[2] * qfco)
         
 
 print("total utility = " + str(accUtility))     
@@ -155,7 +176,9 @@ axarr[5].plot(range(tlen),utilitySeries,linestyle='--',alpha=0.5,color='r')   #ç
 
 plt.show()
 
+
 print("avg QFcost: " + str(np.mean(qfCost)) + "avg QFrevenue: " + str(np.mean(qfRevenue)) + "avg QFtimeout: " + str(np.mean(qfTimeout)))
+print("Overall Satisfaction: " + str(np.mean(sat)))
 x = np.arange(0,tlen)
 fig0 = plt.figure(num=1, figsize=(8, 3)) 
 ax0 = fig0.add_subplot(1,1,1)

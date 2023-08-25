@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import random
 
 # Add do_mpc to path. This is not necessary if it was installed via pip.
 import sys
@@ -20,7 +21,7 @@ from pgmpy.inference import DBNInference
 import MPCAdaptor
 import Environment
 
-case = 1 # wc-0,cl-1,const-2
+case = 0 # wc-0,cl-1,const-2
 order = 2
 model_type = 'discrete' # either 'discrete' or 'continuous'
 model = do_mpc.model.Model(model_type)
@@ -96,6 +97,7 @@ elif(order == 4):
 model.setup()
 
 # define mpc setting
+
 mpc = do_mpc.controller.MPC(model)
 
 setup_mpc = {
@@ -107,14 +109,17 @@ setup_mpc = {
 mpc.set_param(**setup_mpc)
 
 # define objective function
+if(case == 0):
+    weights = [0.98,0.01,0.01]
+else:
+    weights = [0.8,0.16,0.04]
 mterm = 0*x_1
 
 if(order == 2):
     #lterm = (1-C[0][0]*x_1+C[0][1]*x_2)*request_num/60*(1.5*u_1_dimmer+1*(1-u_1_dimmer))+5*(3-u_2_server)
-    if(case == 0):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.01*u_1_dimmer+0.003*u_2_server
-    if(case == 1):
-        lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.25*u_1_dimmer+0.05*u_2_server
+    #lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.01*u_1_dimmer+0.003*u_2_server
+    #lterm = (C[0][0]*x_1+C[0][1]*x_2)**2-0.25*u_1_dimmer+0.05*u_2_server
+    lterm = weights[0]*(C[0][0]*x_1+C[0][1]*x_2)**2+weights[1]*(u_1_dimmer-1)**2+weights[2]*((u_2_server-1)/2)**2
 elif(order == 3):
     lterm = (C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3)**2-0.2*u_1_dimmer+0.05*u_2_server
     #lterm = 1/(1+2.7183**-(C[0][0]*x_1+C[0][1]*x_2+C[0][2]*x_3-1))
@@ -197,6 +202,7 @@ global req_history
 global res_history
 req_history = reqList
 res_history = resList  
+MAX_REQ = max(req_history)
 
 # model build
 reqList = scaleAndDiscrete(np.array(reqList),25)  
@@ -310,6 +316,14 @@ last_u0 = u0
 
 t = 0
 
+startt = -1
+endt = -1
+MetaFlag = 1
+c1 = 0
+c2 = 0
+c1_old = -1
+c2_old = -1
+
 # setup socket
 HOST = '127.0.0.1'          # Symbolic name meaning all available interfaces
 PORT = 50007                # Arbitrary non-privileged port
@@ -343,14 +357,69 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     #P = np.matmul(np.eye(2) - np.matmul(K, C),P_)
                     P = (np.eye(2) - K * C_mat) * P_
                 
-                # MPC setting
-                if(t == 50):
-                    mpc.bounds['upper','_u', 'u_1_dimmer'] = 0
+                # update MPC setting
+                # if context change, then decide to change mpc setting
+                c1 = 0 if(t >= startt and t <= endt) else 1
+                c2 = 0 if(req_history[t] < 3/4 * MAX_REQ) else 1
+                if((not (c1 == c1_old and c2 == c2_old)) and MetaFlag):
+                    u_1_upper = c1
+                    if(c2 == 0):
+                        if(case == 0):
+                            weights = [0.98,0.01,0.01]
+                        elif(case == 1):
+                            weights = [0.8,0.16,0.04]
+                    if(c2 == 1):
+                        if(case == 0):
+                            weights = [0.95, 0.05, 0.001]
+                        elif(case == 1):
+                            weights = [1, 0.3, 0.03]
+                    
+                    mpc = do_mpc.controller.MPC(model)
+                    setup_mpc = {
+                            'n_horizon': 3,
+                            't_step': 1,
+                            'n_robust': 1,
+                            'store_full_solution': True,
+                        }
+                    mpc.set_param(**setup_mpc)
+
+                    mterm = 0*x_1
+                    if(case == 0):
+                        lterm = weights[0]*(C[0][0]*x_1+C[0][1]*x_2)**2-weights[1]*u_1_dimmer+weights[2]*u_2_server
+                    if(case == 1):
+                        lterm = weights[0]*(C[0][0]*x_1+C[0][1]*x_2)**2-weights[1]*u_1_dimmer+weights[2]*u_2_server
+                    
+                    mpc.set_objective(mterm=mterm, lterm=lterm)
+
+                    mpc.set_rterm(
+                        u_1_dimmer=1e-2,
+                        u_2_server=1e-2
+                    )
+
+                    # define bounds
+                    mpc.bounds['lower','_u', 'u_1_dimmer'] = 0
+                    mpc.bounds['lower','_u', 'u_2_server'] = 1
+
+                    mpc.bounds['upper','_u', 'u_1_dimmer'] = u_1_upper
+                    mpc.bounds['upper','_u', 'u_2_server'] = 3
+
+                    mpc.set_tvp_fun(tvp_fun)
                     mpc.setup()
+
+                    x0 = x_hat.reshape(-1,1)
+                    mpc.x0 = x0
+                    mpc.set_initial_guess()
+                
+                c1_old = c1
+                c2_old = c2
 
                 # calculate control input
                 u0 = mpc.make_step(x_hat)
                 u0[1][0] = round(u0[1][0])
+                if(c1 == 0):
+                    u0[0][0] = 0
+                if(u0[1][0] > 3):
+                    u0[1][0] = 3
                 
                 print("t = " + str(t) + " measure y: " + str(y) + "predict y: " + str(y_p) + "KF est y: " + str(C_mat * x_hat))
                 #if(case == 0):

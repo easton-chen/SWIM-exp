@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 #df = pd.read_csv('./SWIM_SA/csv/Reactive-3.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
-df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
+df = pd.read_csv('./SWIM_TEST/csv/Test-5.csv')
 #df = pd.read_csv('./all/new/CobRA-0.csv')
 case = 1
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
@@ -49,7 +49,7 @@ sat = []
 if(case == 0):
     weights = [0.98,0.01,0.01]
 else:
-    weights = [0.8,0.16,0.04]
+    weights = [0.80,0.16,0.04]
 
 for i in range(tlen):
     avgThroughputSeries[i] = float(avgThroughputSeries[i]) 
@@ -100,7 +100,7 @@ for i in range(tlen):
             weights = [0.8,0.16,0.04]
     else:
         if(case == 0):
-            weights = [0.96, 0.04, 0.001]
+            weights = [0.96, 0.03, 0.01]
         elif(case == 1):
             weights = [1, 0.3, 0.03]
     sat.append(weights[0] * qfto + weights[1] * qfre + weights[2] * qfco)

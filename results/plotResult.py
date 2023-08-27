@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 #df = pd.read_csv('./SWIM_SA/csv/Reactive-3.csv')
 #df = pd.read_csv('./SWIM_TRAIN/csv/Train-0.csv')
-df = pd.read_csv('./SWIM_TEST/csv/Test-5.csv')
+df = pd.read_csv('./SWIM_TEST/csv/Test-0.csv')
 #df = pd.read_csv('./all/new/CobRA-0.csv')
-case = 1
+case = 0
 df = pd.DataFrame(df, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 brownout = df.loc[df['name'] == 'brownoutFactor:vector']
 serverNum = df.loc[df['name'] == 'activeServers:vector']

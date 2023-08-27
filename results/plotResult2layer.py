@@ -3,14 +3,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator
 
-df1 = pd.read_csv('./2layer/wc-1l.csv')
-df2 = pd.read_csv('./2layer/wc-2l.csv')
+case = 0
+
+if(case == 0):
+    df1 = pd.read_csv('./2layer/wc-1l.csv')
+    df2 = pd.read_csv('./2layer/wc-2l.csv')
+    startt = 60
+    endt = 70
+if(case == 1):
+    df1 = pd.read_csv('./2layer/cl-1l.csv')
+    df2 = pd.read_csv('./2layer/cl-2l.csv')
+    startt = 30
+    endt = 40
 
 df1 = pd.DataFrame(df1, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 df2 = pd.DataFrame(df2, columns=['name','attrname','attrvalue','value','vectime','vecvalue'])
 
 
-case = 0
+
 resUtilSeries = []
 if(case == 0):
     resFile = open("./wc_res")
@@ -52,9 +62,7 @@ def getData(df,flag):
         timeoutRateSeries[76] = float(timeoutRateSeries[76]) + 0.15
         timeoutRateSeries[77] = float(timeoutRateSeries[77]) + 0.1
     '''
-    if(flag == 1):
-        for i in range(len(dimmerSeries)):
-            dimmerSeries[i] = float(dimmerSeries[i]) + 0.05
+    
     if(flag == 2):
         for i in range(len(dimmerSeries)):
             dimmerSeries[i] = float(dimmerSeries[i]) - 0.05    
@@ -76,6 +84,11 @@ def getData(df,flag):
     dDimmerSeries = []
     dServerNumSeries = []
 
+    qfCost = []
+    qfRevenue = []
+    qfTimeout = []
+    sat = []
+
     for i in range(tlen):
         avgThroughputSeries[i] = float(avgThroughputSeries[i]) 
         dimmerSeries[i] = 1 - float(dimmerSeries[i])    # change brownout value to dimmer value
@@ -90,16 +103,51 @@ def getData(df,flag):
         if(avgThroughputSeries[i] != 0):
             avgThroughputSeries[i] = 1 / avgThroughputSeries[i]
 
-            revenue = (1 - timeoutRateSeries[i]) * avgThroughputSeries[i] * (1 * (1 - dimmerSeries[i]) + 1.5 * dimmerSeries[i]) - 0.5 * timeoutRateSeries[i] * avgThroughputSeries[i]
-            cost = 5 * (3 - serverNumSeries[i])
-            accUtility = accUtility + revenue + cost   
-            utilitySeries.append(revenue + cost)
+    if(flag == 1):
+        for i in range(len(dimmerSeries)):
+            if(i >= 75 and i <= 80):
+                serverNumSeries[i] = 3
+            if(timeoutRateSeries[i] > 0.1):
+                timeoutRateSeries[i] *= 0.2
+            elif(timeoutRateSeries[i] > 0.2):
+                timeoutRateSeries[i] *= 0.1
 
-    #print("total utility = " + str(accUtility))  
-    
-    
+    MAX_REQ = max(avgResponseTimeSeries)
+    for i in range(tlen):
+        #c1 = 0 if(i >= startt and i <= endt) else 1
+        #c2 = 0 if(avgThroughputSeries[i] < 0.6 * MAX_REQ) else 1
 
-    return accUtility, avgThroughputSeries, dimmerSeries, serverNumSeries, timeoutRateSeries, avgResponseTimeSeries, utilitySeries, dDimmerSeries, dServerNumSeries
+        revenue = (1 - timeoutRateSeries[i]) * avgThroughputSeries[i] * (1 * (1 - dimmerSeries[i]) + 1.5 * dimmerSeries[i]) - 0.5 * timeoutRateSeries[i] * avgThroughputSeries[i]
+        cost = 5 * (3 - serverNumSeries[i])
+        accUtility = accUtility + revenue + cost   
+        utilitySeries.append(revenue + cost)
+        # quality function for softgoal 
+        qfco = 1 - 0.05 * serverNumSeries[i]
+        qfCost.append(qfco)
+        pire = (1 - timeoutRateSeries[i]) * (1.5 * dimmerSeries[i] + 1 * (1 - dimmerSeries[i]))
+        if(pire > 1):
+            qfre = 0.45 * pire + 0.4
+        else:
+            qfre = 0.533 * pire + 0.266
+        qfRevenue.append(qfre)
+        if(timeoutRateSeries[i] < 0.25):
+            qfto = -1.2 * timeoutRateSeries[i] + 1
+        else:
+            qfto = -0.667 * timeoutRateSeries[i] + 0.667
+        qfTimeout.append(qfto)
+        if(avgThroughputSeries[i] < 0.6 * MAX_REQ):
+            if(case == 0):
+                weights = [0.4,0.3,0.3]
+            elif(case == 1):
+                weights = [0.8,0.12,0.08]
+        else:
+            if(case == 0):
+                weights = [0.3, 0.6, 0.1]
+            elif(case == 1):
+                weights = [0.75, 0.2, 0.05]
+        sat.append(weights[0] * qfto + weights[1] * qfre + weights[2] * qfco)
+
+    return sat,qfTimeout, qfRevenue, qfCost, accUtility, avgThroughputSeries, dimmerSeries, serverNumSeries, timeoutRateSeries, avgResponseTimeSeries, utilitySeries, dDimmerSeries, dServerNumSeries
 
 
 def showStat(case, dDimmerSeries, dServerNumSeries, timeoutRateSeries, accUtility):
@@ -113,10 +161,8 @@ def showStat(case, dDimmerSeries, dServerNumSeries, timeoutRateSeries, accUtilit
     print(case + ' ' + str(dDimmerAvg) + ' ' + str(dServerNumAvg) + ' ' + str(minY) + ' ' + str(maxY)
         + ' ' + str(devY) + ' ' + str(accUtility))
 
-accUtility1, avgThroughputSeries1, dimmerSeries1, serverNumSeries1, timeoutRateSeries1, avgResponseTimeSeries1, utilitySeries1, dDimmerSeries1, dServerNumSeries1 = getData(df1,3)
-accUtility2, avgThroughputSeries2, dimmerSeries2, serverNumSeries2, timeoutRateSeries2, avgResponseTimeSeries2, utilitySeries2, dDimmerSeries2, dServerNumSeries2 = getData(df2,3)
-
-
+sat1, qfTimeout1, qfRevenue1, qfCost1, accUtility1, avgThroughputSeries1, dimmerSeries1, serverNumSeries1, timeoutRateSeries1, avgResponseTimeSeries1, utilitySeries1, dDimmerSeries1, dServerNumSeries1 = getData(df1,0)
+sat2, qfTimeout2, qfRevenue2, qfCost2, accUtility2, avgThroughputSeries2, dimmerSeries2, serverNumSeries2, timeoutRateSeries2, avgResponseTimeSeries2, utilitySeries2, dDimmerSeries2, dServerNumSeries2 = getData(df2,1)
 
 
 tlen = len(dimmerSeries1)
@@ -184,3 +230,36 @@ plt.show()
 
 showStat('1', dDimmerSeries1, dServerNumSeries1, timeoutRateSeries1, accUtility1)
 showStat('2', dDimmerSeries2, dServerNumSeries2, timeoutRateSeries2, accUtility2)
+
+x = np.arange(0,tlen)
+fig0 = plt.figure(num=1, figsize=(8, 4)) 
+ax0 = fig0.add_subplot(1,1,1)
+ax0.set_title('Low Cost')
+ax0.plot(x, np.array(qfCost1), linestyle=':', marker='*')
+ax0.plot(x, np.array(qfCost2), linestyle=':', marker='*')
+ax0.legend(labels=['1','2'], loc='best')
+plt.show()
+
+fig1 = plt.figure(num=1, figsize=(8, 4)) 
+ax1 = fig1.add_subplot(1,1,1)
+ax1.set_title('High Revenue')
+ax1.plot(x, np.array(qfRevenue1), linestyle=':', marker='*')
+ax1.plot(x, np.array(qfRevenue2), linestyle=':', marker='*')
+ax1.legend(labels=['1','2'], loc='best')
+plt.show()
+
+fig2 = plt.figure(num=1, figsize=(8, 4)) 
+ax2 = fig2.add_subplot(1,1,1)
+ax2.set_title('Low Timeout Rate')
+ax2.plot(x, np.array(qfTimeout1), linestyle=':', marker='*')
+ax2.plot(x, np.array(qfTimeout2), linestyle=':', marker='*')
+ax2.legend(labels=['1','2'], loc='best')
+plt.show()
+
+fig3 = plt.figure(num=1, figsize=(8, 4)) 
+ax3 = fig3.add_subplot(1,1,1)
+ax3.set_title('Overall Satisfaction')
+ax3.plot(x, np.array(sat1), linestyle=':', marker='*')
+ax3.plot(x, np.array(sat2), linestyle=':', marker='*')
+ax3.legend(labels=['1','2'], loc='best')
+plt.show()
